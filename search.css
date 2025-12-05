@@ -1,0 +1,130 @@
+body {
+    margin: 0;
+    background-color: #0F3440;
+    font-family: "Playfair Display", serif;
+    color: white;
+}
+
+header {
+    text-align: center;
+    padding: 40px 0;
+}
+
+.search-bar {
+    display: inline-flex;
+    background-color: #1E4D59;
+    padding: 8px 20px;
+    border-radius: 40px;
+    margin-top: 15px;
+}
+
+.search-bar input {
+    background: none;
+    border: none;
+    color: white;
+    font-size: 18px;
+    outline: none;
+}
+
+.dropdown-btn {
+    background: none;
+    border: none;
+    color: white;
+    font-size: 22px;
+    cursor: pointer;
+}
+
+.container {
+    display: flex;
+    padding: 40px;
+    gap: 40px;
+}
+
+/* LEFT FILTERS */
+.filters {
+    width: 30%;
+    background-color: #123A45;
+    padding: 20px;
+    border-radius: 15px;
+}
+
+.filters h2, .filters h3 {
+    margin-bottom: 10px;
+    border-bottom: 1px solid white;
+    padding-bottom: 5px;
+}
+
+.budget {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin: 15px 0;
+}
+
+.tags span {
+    background-color: #1E4D59;
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 13px;
+}
+
+/* RIGHT SECTION */
+.hotel-list {
+    width: 70%;
+}
+
+.sort {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    margin-bottom: 20px;
+}
+
+.sort button {
+    padding: 5px 10px;
+    border-radius: 10px;
+    border: 0;
+    cursor: pointer;
+}
+
+.hotel-card {
+    display: flex;
+    background-color: #123A45;
+    border-radius: 25px;
+    margin-bottom: 25px;
+    overflow: hidden;
+}
+
+.hotel-card img {
+    width: 220px;
+    height: 160px;
+    object-fit: cover;
+}
+
+.hotel-info {
+    padding: 20px;
+}
+
+.hotel-info h2 {
+    margin: 0;
+    font-size: 22px;
+}
+
+.stars {
+    color: gold;
+    margin-top: 5px;
+}
+
+.info-btn {
+    margin-top: 15px;
+    padding: 7px 15px;
+    border-radius: 20px;
+    border: none;
+    cursor: pointer;
+}
