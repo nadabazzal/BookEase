@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+
+<style>
+/* ---------- NAVBAR ---------- */
+body {
+  margin: 0;
+  font-family: montswerrat;
+}
+
+.navbar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  background-color: #153E52; /* dark blue */
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px 40px;
+  box-sizing: border-box;
+  z-index: 1000;
+}
+
+/* ---------- LOGO ---------- */
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.logo img {
+  height: 55px;
+}
+
+.logo span {
+  font-size: 22px;
+  font-weight: bold;
+  color: white;
+}
+
+/* ---------- NAV LINKS ---------- */
+.nav-links {
+  list-style: none;
+  display: flex;
+  gap: 40px;
+  margin: 0;
+}
+
+.nav-links li a {
+  text-decoration: none;
+  color: white;
+  font-size: 18px;
+  letter-spacing: 1px;
+}
+
+/* ---------- MOBILE MENU BUTTON ---------- */
+.menu-toggle {
+  font-size: 28px;
+  color: white;
+  display: none;
+  cursor: pointer;
+}
+
+/* ---------- RESPONSIVE ---------- */
+@media (max-width: 768px) {
+  .nav-links {
+    position: absolute;
+    top: 70px;
+    right: 0;
+    background-color: #153E52;
+    width: 100%;
+    flex-direction: column;
+    align-items: center;
+    display: none;
+    padding: 20px 0;
+  }
+
+  .nav-links.active {
+    display: flex;
+  }
+
+  .menu-toggle {
+    display: block;
+  }
+}
+</style>
+
+</head>
+<body>
+
+<nav class="navbar">
+
+  <div class="logo">
+    <img src="Screenshot__16_-removebg-preview (1).png" alt="Logo">
+  </div>
+
+  <div class="menu-toggle" id="menu-toggle">☰</div>
+
+  <ul class="nav-links" id="nav-links">
+    <li><a href="#">Home</a></li>
+    <li><a href="#">Search</a></li>
+    <li><a href="#">Favorites</a></li>
+    <li><a href="#">Log In</a></li>
+  </ul>
+
+</nav>
+
+<script>
+  const toggle = document.getElementById("menu-toggle");
+  const links = document.getElementById("nav-links");
+
+  toggle.addEventListener("click", () => {
+    links.classList.toggle("active");
+  });
+</script>
+
+
+</body>
+</html>
