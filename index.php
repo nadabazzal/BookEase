@@ -7,8 +7,26 @@
      <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600&family=Playfair+Display:wght@400;500;600&display=swap" rel="stylesheet">
 
+
+
+<!-- In <head> of your main page -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600&family=Poppins:wght@300;400;500&display=swap" rel="stylesheet">
+
+<link rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
+      integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA=="
+      crossorigin="anonymous" referrerpolicy="no-referrer" />
+
+
+
+
+
+
     <!-- External CSS -->
     <link rel="stylesheet" href="index.css">
+    
 </head>
 <body>
         <?php include 'navbar.html'; ?>
@@ -71,31 +89,42 @@
     <div class="how-grid">
 
         <div class="how-step">
-            <img src="ICON-1" alt="Search Icon">
+              <i class="fa-solid fa-magnifying-glass"></i>
             <h4>01 Search your city</h4>
             <p>Discover the best hotels in seconds.</p>
         </div>
 
         <div class="how-step">
-            <img src="ICON-2" alt="Compare Icon">
+              <i class="fa-solid fa-building"></i>
             <h4>02 Compare hotels</h4>
             <p>Compare ratings, reviews, and locations.</p>
         </div>
 
         <div class="how-step">
-            <img src="ICON-3" alt="Availability Icon">
+              <i class="fa-solid fa-user-group"></i>
             <h4>03 Check availability</h4>
             <p>See available rooms instantly.</p>
         </div>
 
         <div class="how-step">
-            <img src="ICON-4" alt="Book Icon">
+              <i class="fa-solid fa-suitcase-rolling"></i>
             <h4>04 Book your hotel</h4>
             <p>Secure your stay quickly and easily.</p>
         </div>
 
     </div>
 </section>
+<!-- ========= end ========= -->
+
+
+
+
+
+
+
+
+
+
 
 
 
