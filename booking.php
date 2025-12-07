@@ -16,7 +16,7 @@
 
   <!-- NAVBAR AT THE VERY TOP -->
   <?php include 'navbar.html'; ?>
-
+<br><br><br><br>
   <!-- Back link bar -->
   <div class="top-bar">
     <a href="#" class="back-link">
