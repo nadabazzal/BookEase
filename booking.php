@@ -5,12 +5,18 @@
   <title>Booking Details</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-  <!-- Same style of fonts -->
+  <!-- Fonts -->
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600&family=Open+Sans:wght@400;600&display=swap" rel="stylesheet">
+
+  <!-- Stylesheet -->
   <link rel="stylesheet" href="booking.css" />
 </head>
+
 <body>
-   <?php include 'navbar.html'; ?>
+
+  <!-- NAVBAR AT THE VERY TOP -->
+  <?php include 'navbar.html'; ?>
+
   <!-- Back link bar -->
   <div class="top-bar">
     <a href="#" class="back-link">
@@ -20,12 +26,14 @@
   </div>
 
   <main class="booking-layout">
+
     <!-- LEFT: BOOKING DETAILS -->
     <section class="card card-left">
       <h1 class="card-title">Booking Details</h1>
       <p class="card-subtitle">Select your dates and enter your information</p>
 
       <form class="booking-form" action="#" method="post">
+
         <!-- Check-in -->
         <div class="form-group">
           <label class="label-strong">Check-in Date</label>
@@ -81,7 +89,6 @@
           </div>
         </div>
 
-        <!-- Button -->
         <button type="submit" class="btn-primary">Confirm Booking</button>
       </form>
     </section>
@@ -101,17 +108,23 @@
           <span class="label">Room Size:</span>
           <span class="value">600 sq ft</span>
         </div>
+
         <div class="row">
           <span class="label">Max Guests:</span>
           <span class="value">4</span>
         </div>
+
         <div class="row">
           <span class="label">Beds:</span>
           <span class="value">1 King Bed</span>
         </div>
       </div>
     </section>
+
   </main>
-   <?php include 'footer.html'; ?>
+
+  <!-- FOOTER -->
+  <?php include 'footer.html'; ?>
+
 </body>
 </html>
