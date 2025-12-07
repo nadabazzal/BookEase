@@ -118,27 +118,26 @@
     }
 
     .hero-overlay {
-      position: absolute;
-      inset: 0;
-      background: linear-gradient(
-        to bottom,
-        rgba(12, 36, 50, 0.6),
-        rgba(12, 36, 50, 0.9)
-      );
-      display: flex;
-      align-items: flex-start;
-      justify-content: center;
-      padding-top: 42px;
-      text-align: center;
-    }
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    to bottom,
+    rgba(12, 36, 50, 0.6),
+    rgba(12, 36, 50, 0.9)
+  );
+  display: flex;
+  align-items: center;       /* center vertically  */
+  justify-content: center;   /* center horizontally */
+  padding: 0;                /* remove top padding */
+  text-align: center;
+}
 
-    .hero-title {
-      font-size: 40px;
-      font-weight: 500;
-      letter-spacing: 2px;
-      font-family:TAN Mon cheri;
-      text-align: center;
-    }
+.hero-title {
+  font-size: 50px;
+  font-weight: 500;
+  letter-spacing: 2px;
+  font-family:TAN Mon Cheri;
+}
 
     /* ---------- TABS ---------- */
     .tabs {
