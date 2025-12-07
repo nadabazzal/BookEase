@@ -320,15 +320,8 @@
 
 <body>
   <!-- شريط علوي -->
-  <div class="top-bar">
-    <div class="logo">BookEase</div>
-    <div class="nav-links">
-      <a href="#">Home</a>
-      <a href="#">Hotels</a>
-      <a href="#">Deals</a>
-      <a href="#">Contact</a>
-    </div>
-  </div>
+ <?php include 'navbar.html'; ?>
+<br><br><br><br>
 
   <!-- البوكس الرئيسي -->
   <div class="page-wrapper">
@@ -466,5 +459,7 @@
     <!-- نهاية content -->
   </div>
   <!-- نهاية page-wrapper -->
+   <?php include 'footer.html'; ?>
+
 </body>
 </html>
