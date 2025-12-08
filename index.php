@@ -39,7 +39,7 @@
     <div class="hero-text">
         <h1>BOOKEASE</h1><br>
         <p>Find the Perfect Stay Wherever You Go.</p><br>
-        <a href="#" class="btn-primary">Book Now</a><br>
+        <a href="booking.php" class="btn-primary">Book Now</a><br>
     </div>
 </section>
 
