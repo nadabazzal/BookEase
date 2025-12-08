@@ -55,6 +55,30 @@ body {
   font-size: 18px;
   letter-spacing: 1px;
 }
+.underline-center {
+    position: relative;
+    display: inline-block;
+    cursor: pointer;
+}
+
+.underline-center::after {
+    content: "";
+    position: absolute;
+    left: 50%;
+    bottom: -3px;
+    width: 0;
+    height: 2px;
+    background-color: #ffffff;
+    transform: translateX(-50%);
+    transition: width 0.35s ease;
+}
+
+.underline-center:hover::after {
+    width: 100%;
+}
+
+
+
 
 /* ---------- MOBILE MENU BUTTON ---------- */
 .menu-toggle {
@@ -100,10 +124,10 @@ body {
   <div class="menu-toggle" id="menu-toggle">☰</div>
 
   <ul class="nav-links" id="nav-links">
-    <li><a href="index.php">Home</a></li>
-    <li><a href="search.php">Search</a></li>
-    <li><a href="favorites.php">Favorites</a></li>
-    <li><a href="login.html">Log In</a></li>
+    <li class="underline-center"><a href="index.php">Home</a></li>
+    <li class="underline-center"><a href="search.php">Search</a></li>
+    <li class="underline-center"><a href="favorites.php">Favorites</a></li>
+    <li class="underline-center"><a href="login.html">Log In</a></li>
   </ul>
 
 </nav>
