@@ -1,4 +1,14 @@
-*,
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Sign Up</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <!-- Fonts similar to the design -->
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600&family=Open+Sans:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    *,
 *::before,
 *::after {
   box-sizing: border-box;
@@ -115,3 +125,27 @@ body {
     font-size: 1.8rem;
   }
 }
+
+  </style>
+</head>
+<body>
+  <div class="signup-wrapper">
+    <div class="signup-card">
+      <h1>Sign Up</h1>
+
+      <form class="signup-form" action="#" method="post">
+        <label for="email">Email address</label>
+        <input type="email" id="email" name="email" required />
+
+        <label for="password">Password</label>
+        <input type="password" id="password" name="password" required />
+
+        <label for="confirm-password">Confirm password</label>
+        <input type="password" id="confirm-password" name="confirm-password" required />
+
+        <button type="submit" class="save-btn">Save my password</button>
+      </form>
+    </div>
+  </div>
+</body>
+</html>
