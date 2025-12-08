@@ -46,62 +46,7 @@
       text-decoration: none;
     }
 
-    /* ---------- NAVBAR ---------- */
-    .navbar {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      background-color: var(--bg-dark);
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 12px 40px;
-      z-index: 1000;
-    }
-
-    .logo {
-      display: flex;
-      align-items: center;
-      gap: 14px;
-    }
-
-    .logo img {
-      height: 50px;
-    }
-
-    .logo span {
-      font-size: 18px;
-      font-weight: 600;
-      color: var(--text-main);
-      letter-spacing: 1px;
-    }
-
-    .nav-links {
-      list-style: none;
-      display: flex;
-      gap: 32px;
-      align-items: center;
-    }
-
-    .nav-links li a {
-      font-size: 13px;
-      text-transform: uppercase;
-      letter-spacing: 1px;
-      color: var(--subtle);
-    }
-
-    .nav-links li a:hover {
-      color: #ffffff;
-    }
-
-    .menu-toggle {
-      font-size: 26px;
-      color: #ffffff;
-      display: none;
-      cursor: pointer;
-    }
-
+   
     /* ---------- HERO ---------- */
     .hero-section {
       margin-top: 74px; /* navbar height */
@@ -111,11 +56,12 @@
       overflow: hidden;
     }
 
-    .hero-img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-    }
+ .hero-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+
+}
 
     .hero-overlay {
   position: absolute;
@@ -491,30 +437,12 @@
 </head>
 
 <body>
-  <!-- NAVBAR -->
-  <header class="navbar">
-    <div class="logo">
-      <img src="logo.png" alt="Bookease Logo" />
-      
-    </div>
-
-    <nav>
-      <ul class="nav-links" id="nav-links">
-        <li><a href="#">Home</a></li>
-        <li><a href="#">Search</a></li>
-        <li><a href="#">Favorites</a></li>
-        <li><a href="#">Log in</a></li>
-      </ul>
-    </nav>
-
-    <div class="menu-toggle" id="menu-toggle">
-      <i class="fas fa-bars"></i>
-    </div>
-  </header>
+   <?php include 'navbar.html'; ?>
+    <br><br><br><br>
 
   <!-- HERO -->
   <section class="hero-section">
-    <img src="hotel.png" alt="Hotel" class="hero-img" />
+    <img src="images/hotel.png" alt="Hotel" class="hero-img" />
     <div class="hero-overlay">
       <h1 class="hero-title">Le Gray Beirut</h1>
     </div>
@@ -550,7 +478,7 @@
           </div>
         </div>
 
-        <button class="book-btn">Book Now</button>
+        <button class="book-btn" onclick="window.location.href='booking.php';">Book Now</button>
       </div>
     </section>
 
@@ -562,7 +490,7 @@
 
       <div class="rooms-row">
         <div class="room-photo-card">
-          <img src="room1.jpg" alt="Corner One Bedroom Suite" />
+          <img src="images/room.jpg" alt="Corner One Bedroom Suite" />
         </div>
 
         <div class="room-details-card">

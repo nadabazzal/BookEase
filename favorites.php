@@ -8,6 +8,13 @@
 
     <!-- Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Montserrat:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link
+    rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
+    integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA=="
+    crossorigin="anonymous"
+    referrerpolicy="no-referrer"
+  />
 </head>
 <body>
 
@@ -42,8 +49,9 @@
                 <img src="YOUR-STAR-ICON">
             </div>
 
-            <button class="more-btn">Show more info</button>
-        </div>
+<button class="more-btn" onclick="window.location.href='hotelInfo.php';">
+    Show more info
+</button>      </div>
 
         <div class="icons-right">
             <div class="hotel-features">
@@ -70,8 +78,9 @@
                 <img src="YOUR-STAR-ICON">
                 <img src="YOUR-STAR-ICON">
             </div>
-
-            <button class="more-btn">Show more info</button>
+<button class="more-btn" onclick="window.location.href='hotelInfo.php';">
+    Show more info
+</button>
         </div>
 
         <div class="icons-right">
