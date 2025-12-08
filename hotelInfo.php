@@ -514,7 +514,7 @@
 
   <!-- HERO -->
   <section class="hero-section">
-    <img src="hotel.png" alt="Hotel" class="hero-img" />
+    <img src="images/hotel.png" alt="Hotel" class="hero-img" />
     <div class="hero-overlay">
       <h1 class="hero-title">Le Gray Beirut</h1>
     </div>
