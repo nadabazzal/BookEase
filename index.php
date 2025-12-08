@@ -34,7 +34,7 @@
 
 <!-- ========= HEADER SECTION (BANNER) ========= -->
 <section class="hero-section">
-        <img src="hotel5.jpg" class="hero-img">
+        <img src="images/hotel5.jpg" class="hero-img">
 
     <div class="hero-text">
         <h1>BOOKEASE</h1><br>
@@ -55,24 +55,25 @@
 
         <!-- Hotel Card 1 -->
         <div class="hotel-card">
-            <img src="HOTEL-IMAGE-1" alt="Hotel Image">
-            <h3>LE GRANDE SUITE</h3>
+            <img src="images/HOTEL-IMAGE-1.jpg" alt="Hotel Image">
+            <h3>Beirut Central Hotel</h3>
             <p class="rating">★★★★★</p>
             <a href="#" class="btn-secondary">View Details</a>
         </div>
 
         <!-- Hotel Card 2 -->
         <div class="hotel-card">
-            <img src="HOTEL-IMAGE-2" alt="Hotel Image">
-            <h3>ROYAL ELITE SUITE</h3>
-            <p class="rating">★★★★★</p>
+            <img src="images/HOTEL-IMAGE-2.jpg" alt="Hotel Image">
+            <h3>Tripoli Old Town Hotel</h3>
+            <p class="rating">★★★★☆</p>
+
             <a href="#" class="btn-secondary">View Details</a>
         </div>
 
         <!-- Hotel Card 3 -->
         <div class="hotel-card">
-            <img src="HOTEL-IMAGE-3" alt="Hotel Image">
-            <h3>MONARCH HOTEL</h3>
+            <img src="images/HOTEL-IMAGE-3.jpg" alt="Hotel Image">
+            <h3>Byblos Harbor Hotel</h3>
             <p class="rating">★★★★★</p>
             <a href="#" class="btn-secondary">View Details</a>
         </div>
@@ -84,36 +85,65 @@
 
 <!-- ========= HOW IT WORKS ========= -->
 <section class="how-section">
-    <h2 class="section-title">How It Works</h2>
+  <div class="how-container">
+
+    <h2 class="how-title">How It Works</h2>
+    <div class="how-underline"></div>
 
     <div class="how-grid">
-
-        <div class="how-step">
-              <i class="fa-solid fa-magnifying-glass"></i>
-            <h4>01 Search your city</h4>
-            <p>Discover the best hotels in seconds.</p>
+      <!-- عمود يسار -->
+      <div class="how-column">
+        <div class="how-card">
+          <div class="how-card-header">
+            <span class="how-icon">🔍</span>
+            <span class="how-step-number">01</span>
+          </div>
+          <h3 class="how-card-title">Search for your city</h3>
+          <p class="how-card-text">Find hotels instantly by entering your destination.</p>
         </div>
 
-        <div class="how-step">
-              <i class="fa-solid fa-building"></i>
-            <h4>02 Compare hotels</h4>
-            <p>Compare ratings, reviews, and locations.</p>
+        <div class="how-card">
+          <div class="how-card-header">
+            <span class="how-icon">🏨</span>
+            <span class="how-step-number">02</span>
+          </div>
+          <h3 class="how-card-title">Compare hotels</h3>
+          <p class="how-card-text">View ratings, prices, and locations side-by-side.</p>
+        </div>
+      </div>
+
+      <!-- الصورة بالنص -->
+      <div class="how-center">
+        <div class="how-image-wrap">
+          <img src="images/hotel1.jpg" alt="Hotel" class="how-image">
+        </div>
+      </div>
+
+      <!-- عمود يمين -->
+      <div class="how-column">
+        <div class="how-card">
+          <div class="how-card-header">
+            <span class="how-icon">👥</span>
+            <span class="how-step-number">03</span>
+          </div>
+          <h3 class="how-card-title">Check availability</h3>
+          <p class="how-card-text">See room options and available dates instantly.</p>
         </div>
 
-        <div class="how-step">
-              <i class="fa-solid fa-user-group"></i>
-            <h4>03 Check availability</h4>
-            <p>See available rooms instantly.</p>
+        <div class="how-card">
+          <div class="how-card-header">
+            <span class="how-icon">👤</span>
+            <span class="how-step-number">04</span>
+          </div>
+          <h3 class="how-card-title">Book your hotel</h3>
+          <p class="how-card-text">Reserve your stay securely in a few taps.</p>
         </div>
-
-        <div class="how-step">
-              <i class="fa-solid fa-suitcase-rolling"></i>
-            <h4>04 Book your hotel</h4>
-            <p>Secure your stay quickly and easily.</p>
-        </div>
-
+      </div>
     </div>
+
+  </div>
 </section>
+
 <!-- ========= end ========= -->
 
 
@@ -129,8 +159,8 @@
 
 
 <!-- ========= BOTTOM IMAGE SECTION ========= -->
-<section class="bottom-image">
-    <img src="BOTTOM-IMAGE-LINK" alt="Hotel Interior">
+<section >
+    <img src="images/BOTTOM-IMAGE-LINK.jpg" alt="Hotel Interior" class="bottom-image">
 </section>
 
     <?php include 'footer.html'; ?>
