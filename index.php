@@ -34,7 +34,7 @@
 
 <!-- ========= HEADER SECTION (BANNER) ========= -->
 <section class="hero-section">
-        <img src="BookEasee (3).png" class="hero-img">
+        <img src="hotel5.jpg" class="hero-img">
 
     <div class="hero-text">
         <h1>BOOKEASE</h1><br>
