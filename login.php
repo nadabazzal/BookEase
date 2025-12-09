@@ -1,3 +1,50 @@
+<?php
+$conn=mysqli_connect("localhost","root","","hotel_management_system");
+if(!$conn){
+  die("connection failed: ".mysqli_connect_error());
+}
+$error="";
+if(isset($_POST['email']) && isset($_POST['password'])){
+$email=$_POST['email'];
+$password=$_POST['password'];
+if(empty($email)||empty($password)){
+  $error ="Please fill in all fields.";
+
+}
+else{
+  $email_safe=trim($email);
+  $sql="SELECT * FROM users WHERE email='$email_safe' ";
+  $result=mysqli_query($conn,$sql);
+  if(mysqli_num_rows($result) == 1){
+  $user=mysqli_fetch_assoc($result);
+  if(password_verify($password,$user['password'])){
+    if($user['role'] == "admin"){
+      header("Location: admin.php");
+      exit;
+    }
+    if($user['role']== "housekeeper"){
+      header("Location: housekeeper.php");
+      exit;
+    }
+    if($user['role']=="user"){
+      header("Location:favorites.php");
+      exit;
+    }
+  
+
+  }
+  else{
+    $error ="Wrong email or password.";
+  }
+}
+else{
+   $error ="Wrong email or password.";
+}
+
+}
+}
+
+   ?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -23,9 +70,7 @@ body {
   margin: 0;
   color: #ffffff;
     background-color: #1e4250;
-  background-size: cover;
-  background-position: center;
-  background-repeat: no-repeat;
+ 
 }
 
 /* Center the card */
@@ -91,15 +136,11 @@ body {
   font-weight: 600;
   font-size: 0.98rem;
   cursor: pointer;
-  transition: transform 0.15s ease, box-shadow 0.15s ease, background-color 0.15s ease;
+
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
 }
 
-.login-btn:hover {
-  background-color: #ffffff;
-  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
-  transform: translateY(-1px);
-}
+
 
 /* Links */
 .links {
@@ -123,13 +164,15 @@ body {
   <div class="login-wrapper">
     <div class="login-card">
       <h1>Login to Your Account</h1>
-
+   <?php if(!empty($error) ) : ?>
+    <p style="color: #ffb3b3 ;background: rgba(197, 185, 185, 0.08) ; padding:10px;border-radius: 8px;
+    margin-bottom: 15px;"><?php echo $error ?></p><?php endif; ?>
       <form class="login-form" action="#" method="post">
         <label for="email">Email address</label>
-        <input type="email" id="email" name="email" required />
+        <input type="email" id="email" name="email"/>
 
         <label for="password">Password</label>
-        <input type="password" id="password" name="password" required />
+        <input type="password" id="password" name="password" />
 
         <button type="submit" class="login-btn">Login</button>
       </form>
@@ -141,3 +184,5 @@ body {
   </div>
 </body>
 </html>
+
+   
