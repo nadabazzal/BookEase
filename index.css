@@ -44,11 +44,13 @@ h1, h2, h3, h4 {
 
 .btn-primary {
     padding: 10px 20px;
-    background:  #ffc54d;
-    color: #ffffff;
+    background:  #ffffff;
+    color: #0b2d39;
     text-decoration: none;
-    border-radius: 8px;
+    border-radius: 10px;
     font-weight: 600;
+
+
 }
 
 

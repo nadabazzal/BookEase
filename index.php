@@ -39,7 +39,7 @@
     <div class="hero-text">
         <h1>BOOKEASE</h1><br>
         <p>Find the Perfect Stay Wherever You Go.</p><br>
-        <a href="booking.php" class="btn-primary">Book Now</a><br>
+        <a href="search.php" class="btn-primary">Book Now</a><br>
     </div>
 </section>
 
@@ -58,7 +58,7 @@
             <img src="images/HOTEL-IMAGE-1.jpg" alt="Hotel Image">
             <h3>Beirut Central Hotel</h3>
             <p class="rating">★★★★★</p>
-            <a href="#" class="btn-secondary">View Details</a>
+            <a href="hotelinfo.php" class="btn-secondary">View Details</a>
         </div>
 
         <!-- Hotel Card 2 -->
@@ -67,7 +67,7 @@
             <h3>Tripoli Old Town Hotel</h3>
             <p class="rating">★★★★☆</p>
 
-            <a href="#" class="btn-secondary">View Details</a>
+            <a href="hotelinfo.php" class="btn-secondary">View Details</a>
         </div>
 
         <!-- Hotel Card 3 -->
@@ -75,7 +75,7 @@
             <img src="images/HOTEL-IMAGE-3.jpg" alt="Hotel Image">
             <h3>Byblos Harbor Hotel</h3>
             <p class="rating">★★★★★</p>
-            <a href="#" class="btn-secondary">View Details</a>
+            <a href="hotelinfo.php" class="btn-secondary">View Details</a>
         </div>
 
     </div>

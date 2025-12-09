@@ -46,62 +46,7 @@
       text-decoration: none;
     }
 
-    /* ---------- NAVBAR ---------- */
-    .navbar {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      background-color: var(--bg-dark);
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 12px 40px;
-      z-index: 1000;
-    }
-
-    .logo {
-      display: flex;
-      align-items: center;
-      gap: 14px;
-    }
-
-    .logo img {
-      height: 50px;
-    }
-
-    .logo span {
-      font-size: 18px;
-      font-weight: 600;
-      color: var(--text-main);
-      letter-spacing: 1px;
-    }
-
-    .nav-links {
-      list-style: none;
-      display: flex;
-      gap: 32px;
-      align-items: center;
-    }
-
-    .nav-links li a {
-      font-size: 13px;
-      text-transform: uppercase;
-      letter-spacing: 1px;
-      color: var(--subtle);
-    }
-
-    .nav-links li a:hover {
-      color: #ffffff;
-    }
-
-    .menu-toggle {
-      font-size: 26px;
-      color: #ffffff;
-      display: none;
-      cursor: pointer;
-    }
-
+   
     /* ---------- HERO ---------- */
     .hero-section {
       margin-top: 74px; /* navbar height */
@@ -147,7 +92,7 @@
       background: #1c4454;
       padding: 12px 10px;
       gap: 60px;
-      font-size: 12px;
+      font-size: 20px;
     }
 
     .tabs a {
@@ -221,13 +166,14 @@
     }
 
     .book-btn {
-      background: var(--bg-dark);
+      background: #0f4155;
       padding: 10px 24px;
       border-radius: 30px;
       font-size: 13px;
       cursor: pointer;
       border: 1px solid #ffffff44;
       white-space: nowrap;
+      color: #ffffff;
     }
 
     .book-btn:hover {
@@ -491,26 +437,8 @@
 </head>
 
 <body>
-  <!-- NAVBAR -->
-  <header class="navbar">
-    <div class="logo">
-      <img src="logo.png" alt="Bookease Logo" />
-      
-    </div>
+          <?php include 'navbar.html'; ?>
 
-    <nav>
-      <ul class="nav-links" id="nav-links">
-        <li><a href="#">Home</a></li>
-        <li><a href="#">Search</a></li>
-        <li><a href="#">Favorites</a></li>
-        <li><a href="#">Log in</a></li>
-      </ul>
-    </nav>
-
-    <div class="menu-toggle" id="menu-toggle">
-      <i class="fas fa-bars"></i>
-    </div>
-  </header>
 
   <!-- HERO -->
   <section class="hero-section">
@@ -550,7 +478,7 @@
           </div>
         </div>
 
-        <button class="book-btn">Book Now</button>
+        <button href="booking.php" class="book-btn">Book Now</button>
       </div>
     </section>
 
@@ -641,51 +569,7 @@
       </div>
     </section>
   </main>
+    <?php include 'footer.html'; ?>
 
-  <!-- FOOTER -->
-  <footer class="footer">
-    <div class="footer-item">
-      <h2>Contact Us</h2>
-      <p>
-        <i class="fa-solid fa-location-dot"></i>
-        123 Signature Boulevard<br />
-        Preah Sihanouk, Cambodia
-      </p>
-      <p>
-        <i class="fa-solid fa-phone"></i>
-        +1 (555) 123-4567
-      </p>
-      <p>
-        <i class="fa-solid fa-envelope"></i>
-        info@thesignature.com
-      </p>
-    </div>
-
-    <div class="footer-item">
-      <h2>Stay Connected</h2>
-      <p>
-        Follow us on social media for updates<br />
-        and exclusive offers
-      </p>
-      <div class="social-icons" style="margin: 25px 0">
-        <i class="fab fa-facebook-f"></i>
-        <i class="fab fa-twitter"></i>
-        <i class="fab fa-instagram"></i>
-      </div>
-      <p>
-        Opening Hours<br />
-        <span class="highlight">24/7 Reception</span>
-      </p>
-    </div>
-  </footer>
-
-  <script>
-    const toggle = document.getElementById("menu-toggle");
-    const links = document.getElementById("nav-links");
-
-    toggle.addEventListener("click", () => {
-      links.classList.toggle("active");
-    });
-  </script>
 </body>
 </html>

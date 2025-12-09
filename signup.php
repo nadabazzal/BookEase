@@ -21,7 +21,7 @@ body {
     sans-serif;
   min-height: 100vh;
   color: #ffffff;
-  background-image: url("background.jpg"); /* replace with your own image path */
+    background-color: #1e4250;
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
