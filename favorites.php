@@ -21,25 +21,25 @@
     <!-- Small extra styles for the favorite button -->
     <style>
         .favorite-btn {
-            margin-top: 80px;
             padding: 6px 10px;
             border-radius: 20px;
-            border: 1px solid #cba135;
+            border: 1px solid #ffffff;
             background-color: transparent;
-            color: #cba135;
+            color: #ffffff;
             font-size: 12px;
             cursor: pointer;
             display: inline-flex;
+            justify-content: center;
             align-items: center;
             gap: 6px;
         }
 
         .favorite-btn i {
-            font-size: 13px;
+            font-size: 10px;
         }
 
         .favorite-btn:hover {
-            background-color: #cba135;
+            background-color: #ffffff;
             color: #1b2b34;
         }
     </style>
@@ -69,14 +69,11 @@
             </button>
         </div>
 
-        <div class="icons-right">
-            <div class="room-icons">🛏️🛏️🛏️</div>
 
-            <!-- Favorite / Unfavorite button -->
-            <button class="favorite-btn">
-                <i class="fa-solid fa-heart"></i>
-                
-            </button>
+           <button class="favorite-btn">
+    <i class="fa-solid fa-bookmark"></i>
+</button>
+
         </div>
     </div>
 
@@ -97,14 +94,11 @@
             </button>
         </div>
 
-        <div class="icons-right">
-            
-                <div class="room-icons">🛏️🛏️🛏️</div>
-            </div>
+      
 
             <!-- Favorite / Unfavorite button -->
             <button class="favorite-btn">
-                <i class="fa-solid fa-heart"></i>
+                <i class="fa-solid fa-bookmark"></i>
                 
             </button>
         </div>

@@ -76,15 +76,6 @@ body {
     font-family: 'Montserrat';
 }
 
-/* RIGHT ICON PANEL */
-.icons-right {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 25px;
-    flex-shrink: 0; /* prevent stretching */
-}
-
 .hotel-features img {
     width: 28px;
 }
@@ -94,23 +85,4 @@ body {
     cursor: pointer;
 }
 
-/* RESPONSIVENESS */
-@media (max-width: 992px) {
-    .hotel-card {
-        flex-direction: column;
-        text-align: center;
-    }
 
-    .hotel-img {
-        width: 100%;
-        max-width: 330px;
-        height: auto;
-    }
-
-    .icons-right {
-        flex-direction: row;
-        justify-content: center;
-        gap: 20px;
-        margin-top: 10px;
-    }
-}
