@@ -199,15 +199,7 @@
       transform: translateY(-2px);
     }
 
-    /* RESPONSIVE */
-    @media (max-width: 768px) {
-      .page-wrapper {
-        margin-top: 20px;
-      }
-      .card {
-        padding: 20px 18px;
-      }
-    }
+  
 
   </style>
 </head>

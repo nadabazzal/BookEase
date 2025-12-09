@@ -10,31 +10,7 @@ body {
     font-family: 'Montserrat', sans-serif;
 }
 
-/* SORT BAR */
-.filter-header {
-    width: 100%;
-    display: flex;
-    justify-content: flex-start;
-    padding: 15px 20px; /* smaller padding to avoid overflow */
-}
 
-.sort-btn {
-    background: #123847;
-    color: #fff;
-    padding: 10px 20px;
-    border-radius: 8px;
-    border: none;
-    font-size: 16px;
-    cursor: pointer;
-    font-family: 'Playfair Display', serif;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-}
-
-.sort-btn img {
-    width: 12px;
-}
 
 /* HOTEL LIST */
 .hotel-list {

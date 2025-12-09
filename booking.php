@@ -63,7 +63,6 @@ body {
 .card {
   background: rgba(3, 54, 70, 0.9); /* dark teal with transparency */
   border-radius: 26px;
-  backdrop-filter: blur(3px);
   box-shadow: 0 18px 40px rgba(0, 0, 0, 0.45);
 }
 
