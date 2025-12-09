@@ -58,37 +58,6 @@ body {
 
 
 
-
-/* ---------- MOBILE MENU BUTTON ---------- */
-.menu-toggle {
-  font-size: 28px;
-  color: white;
-  display: none;
-  cursor: pointer;
-}
-
-/* ---------- RESPONSIVE ---------- */
-@media (max-width: 768px) {
-  .nav-links {
-    position: absolute;
-    top: 70px;
-    right: 0;
-    background-color: #153E52;
-    width: 100%;
-    flex-direction: column;
-    align-items: center;
-    display: none;
-    padding: 20px 0;
-  }
-
-  .nav-links.active {
-    display: flex;
-  }
-
-  .menu-toggle {
-    display: block;
-  }
-}
 </style>
 
 </head>
@@ -100,7 +69,6 @@ body {
     <img src="Screenshot__16_-removebg-preview (1).png" alt="Logo">
   </div>
 
-  <div class="menu-toggle" id="menu-toggle">☰</div>
 
   <ul class="nav-links" id="nav-links">
     <li class="underline-center"><a href="index.php">Home</a></li>
@@ -111,14 +79,6 @@ body {
 
 </nav>
 
-<script>
-  const toggle = document.getElementById("menu-toggle");
-  const links = document.getElementById("nav-links");
-
-  toggle.addEventListener("click", () => {
-    links.classList.toggle("active");
-  });
-</script>
 
 
 </body>
