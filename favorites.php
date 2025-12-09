@@ -13,16 +13,9 @@
 
 <?php include 'navbar.html'; ?>
 
-<br><br><br><br>
+<br><br><br><br><br>
 
-<section class="filter-header">
-    <div class="sort-container">
-        <button class="sort-btn">
-            Sort by : Price
-            <img src="YOUR-DOWN-ARROW-LINK" class="arrow-icon">
-        </button>
-    </div>
-</section>
+
 
 <section class="hotel-list">
 
