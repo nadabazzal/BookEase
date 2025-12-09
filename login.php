@@ -22,7 +22,7 @@ body {
   min-height: 100vh;
   margin: 0;
   color: #ffffff;
-  background-image: url("background.jpg"); /* replace with your image path */
+    background-color: #1e4250;
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;

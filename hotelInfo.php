@@ -37,6 +37,67 @@
       color: var(--text-main);
     }
 
+    a {
+      color: inherit;
+      text-decoration: none;
+    }
+
+    /* ---------- NAVBAR ---------- */
+    .navbar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      background-color: var(--bg-dark);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 40px;
+      z-index: 1000;
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .logo img {
+      height: 50px;
+    }
+
+    .logo span {
+      font-size: 18px;
+      font-weight: 600;
+      color: var(--text-main);
+      letter-spacing: 1px;
+    }
+
+    .nav-links {
+      list-style: none;
+      display: flex;
+      gap: 32px;
+      align-items: center;
+    }
+
+    .nav-links li a {
+      font-size: 13px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--subtle);
+    }
+
+    .nav-links li a:hover {
+      color: #ffffff;
+    }
+
+    .menu-toggle {
+      font-size: 26px;
+      color: #ffffff;
+      display: none;
+      cursor: pointer;
+    }
+
     /* ---------- HERO ---------- */
     .hero-section {
       margin-top: 74px;
@@ -76,7 +137,7 @@
       background: #1c4454;
       padding: 12px 10px;
       gap: 60px;
-      font-size: 18px;
+      font-size: 12px;
     }
 
     .tabs a {
@@ -126,11 +187,16 @@
     }
 
     .book-btn {
-      background: var(--bg-dark);
+      background: #0f4155;
       padding: 10px 24px;
       border-radius: 30px;
       cursor: pointer;
       border: 1px solid #ffffff44;
+      white-space: nowrap;
+    }
+
+    .book-btn:hover {
+      background: #0f4155;
     }
 
     /* ---------- ROOMS ---------- */
@@ -322,10 +388,26 @@
 </head>
 
 <body>
+  <!-- NAVBAR -->
+  <header class="navbar">
+    <div class="logo">
+      <img src="logo.png" alt="Bookease Logo" />
+      
+    </div>
 
-  <!-- Navbar include -->
-  <?php include 'navbar.html'; ?>
-  <br><br><br><br>
+    <nav>
+      <ul class="nav-links" id="nav-links">
+        <li><a href="#">Home</a></li>
+        <li><a href="#">Search</a></li>
+        <li><a href="#">Favorites</a></li>
+        <li><a href="#">Log in</a></li>
+      </ul>
+    </nav>
+
+    <div class="menu-toggle" id="menu-toggle">
+      <i class="fas fa-bars"></i>
+    </div>
+  </header>
 
   <!-- HERO -->
   <section class="hero-section">
@@ -350,11 +432,23 @@
       <div class="section-header">DETAILS</div>
 
       <div class="details-box">
-        <div class="detail-item">📍 Downtown Beirut, Lebanon</div>
-        <div class="detail-item rating-pill">9.3</div>
-        <div class="detail-item">📞 +961 81/363443</div>
-        <div class="detail-item">📧 legray@gmail.com</div>
-        <button class="book-btn" onclick="window.location.href='booking.php'">Book Now</button>
+        <div class="details-left">
+          <div class="detail-item">
+            📍 <span>Downtown Beirut, Lebanon</span>
+          </div>
+
+          <div class="detail-item rating-pill">9.3</div>
+
+          <div class="detail-item">
+            📞 <span>+961 81/363443</span>
+          </div>
+
+          <div class="detail-item">
+            📧 <span>legray@gmail.com</span>
+          </div>
+        </div>
+
+        <button class="book-btn">Book Now</button>
       </div>
     </section>
 
@@ -493,23 +587,51 @@
       </div>
     </section>
   </main>
-<?php include 'footer.html'; ?>
-  <script>
-    document.addEventListener("DOMContentLoaded", () => {
-      const btn = document.getElementById("show-more-rooms");
-      const extra = document.getElementById("extra-rooms");
 
-      btn.addEventListener("click", () => {
-        if (extra.classList.contains("hidden")) {
-          extra.classList.remove("hidden");
-          btn.textContent = "Show less rooms";
-        } else {
-          extra.classList.add("hidden");
-          btn.textContent = "Show more rooms";
-        }
-      });
+  <!-- FOOTER -->
+  <footer class="footer">
+    <div class="footer-item">
+      <h2>Contact Us</h2>
+      <p>
+        <i class="fa-solid fa-location-dot"></i>
+        123 Signature Boulevard<br />
+        Preah Sihanouk, Cambodia
+      </p>
+      <p>
+        <i class="fa-solid fa-phone"></i>
+        +1 (555) 123-4567
+      </p>
+      <p>
+        <i class="fa-solid fa-envelope"></i>
+        info@thesignature.com
+      </p>
+    </div>
+
+    <div class="footer-item">
+      <h2>Stay Connected</h2>
+      <p>
+        Follow us on social media for updates<br />
+        and exclusive offers
+      </p>
+      <div class="social-icons" style="margin: 25px 0">
+        <i class="fab fa-facebook-f"></i>
+        <i class="fab fa-twitter"></i>
+        <i class="fab fa-instagram"></i>
+      </div>
+      <p>
+        Opening Hours<br />
+        <span class="highlight">24/7 Reception</span>
+      </p>
+    </div>
+  </footer>
+
+  <script>
+    const toggle = document.getElementById("menu-toggle");
+    const links = document.getElementById("nav-links");
+
+    toggle.addEventListener("click", () => {
+      links.classList.toggle("active");
     });
   </script>
-
 </body>
 </html>

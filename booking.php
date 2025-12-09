@@ -24,7 +24,7 @@ body {
     "Segoe UI", sans-serif;
   color: #ffffff;
   min-height: 100vh;
-  background-image: url("background.jpg"); /* use your image file here */
+    background-color: #1e4250;
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;

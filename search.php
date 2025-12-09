@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!DOCTYPE html> 
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
@@ -127,6 +127,26 @@
       padding-bottom: 6px;
     }
 
+    /* زرار choose features */
+    .toggle-btn {
+      width: 100%;
+      padding: 8px 10px;
+      border-radius: 20px;
+      border: 1px solid #0f607e;
+      background: #024d68;
+      color: #ffffff;
+      font-size: 13px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: 0.2s;
+      margin-top: 5px;
+    }
+
+    .toggle-btn:hover {
+      background: #036488;
+      transform: translateY(-1px);
+    }
+
     /* --- صندوق الميزانية --- */
     .budget-slider-wrapper {
       margin-top: 10px;
@@ -146,7 +166,7 @@
 
     /* --- القوائم العمودية للأزرار --- */
     .pill-list {
-      display: flex;
+      display: none; /* مخفيين بالبداية – بيظهرو مع الزر */
       flex-direction: column;
       gap: 8px;
       margin-top: 10px;
@@ -320,8 +340,8 @@
 
 <body>
   <!-- شريط علوي -->
- <?php include 'navbar.html'; ?>
-<br><br><br><br>
+  <?php include 'navbar.html'; ?>
+  <br><br><br><br>
 
   <!-- البوكس الرئيسي -->
   <div class="page-wrapper">
@@ -339,21 +359,14 @@
     <div class="content">
       <!-- العمود الأيسر: الفلاتر -->
       <div class="filters-column">
-        <!-- Budget -->
-        <div class="filter-box">
-          <div class="filter-title">Your Budget</div>
-          <div class="budget-slider-wrapper">
-            <input type="range" min="70" max="200" value="120" />
-            <div class="budget-values">
-              <span>70$</span>
-              <span>200$ +</span>
-            </div>
-          </div>
-        </div>
-
         <!-- Hotel Features -->
         <div class="filter-box">
           <div class="filter-title">Hotel Features</div>
+          <!-- الزر اللي بيفتح/بسكر الفيتشرز -->
+          <button class="toggle-btn" data-label="Choose hotel features">
+            Choose hotel features
+          </button>
+
           <div class="pill-list">
             <button class="pill-btn">Restaurant</button>
             <button class="pill-btn">Swimming Pool</button>
@@ -369,6 +382,11 @@
         <!-- Rooms Features -->
         <div class="filter-box">
           <div class="filter-title">Rooms Features</div>
+          <!-- الزر اللي بيفتح/بسكر room features -->
+          <button class="toggle-btn" data-label="Choose room features">
+            Choose room features
+          </button>
+
           <div class="pill-list">
             <button class="pill-btn">Private Bathroom</button>
             <button class="pill-btn">Balcony</button>
@@ -459,7 +477,29 @@
     <!-- نهاية content -->
   </div>
   <!-- نهاية page-wrapper -->
-   <?php include 'footer.html'; ?>
+  <?php include 'footer.html'; ?>
 
+  <!-- JavaScript بسيط لفتح/إغلاق الليستات -->
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      document.querySelectorAll(".toggle-btn").forEach(function (btn) {
+        var defaultLabel = btn.dataset.label || btn.textContent.trim();
+        btn.textContent = defaultLabel;
+
+        btn.addEventListener("click", function () {
+          var list = btn.nextElementSibling;
+          if (!list) return;
+
+          if (list.style.display === "none" || list.style.display === "") {
+            list.style.display = "flex";
+            btn.textContent = "Hide " + defaultLabel.toLowerCase();
+          } else {
+            list.style.display = "none";
+            btn.textContent = defaultLabel;
+          }
+        });
+      });
+    });
+  </script>
 </body>
 </html>
