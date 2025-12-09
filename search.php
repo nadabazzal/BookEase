@@ -289,52 +289,10 @@
       opacity: 0.9;
     }
 
-    /* ========= RESPONSIVE ========= */
-    @media (max-width: 960px) {
-      .content {
-        flex-direction: column;
-      }
+   
 
-      .filters-column {
-        width: 100%;
-        flex-direction: row;
-        flex-wrap: wrap;
-      }
-
-      .filter-box {
-        flex: 1 1 240px;
-      }
-
-      .hotel-card {
-        flex-direction: column;
-        align-items: stretch;
-      }
-
-      .hotel-image {
-        width: 100%;
-        height: 180px;
-      }
-    }
-
-    @media (max-width: 600px) {
-      .top-bar {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 6px;
-      }
-
-      .inner-header h1 {
-        font-size: 15px;
-      }
-
-      .city-search input {
-        width: 140px;
-      }
-
-      .content {
-        padding: 15px;
-      }
-    }
+   
+    
   </style>
 </head>
 

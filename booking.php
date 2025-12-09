@@ -8,8 +8,7 @@
   <!-- Fonts -->
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600&family=Open+Sans:wght@400;600&display=swap" rel="stylesheet">
 
-  <!-- Stylesheet -->
- <style>
+  <style>
   /* RESET & BASE ----------------------------------------------------------- */
 *,
 *::before,
@@ -24,13 +23,11 @@ body {
     "Segoe UI", sans-serif;
   color: #ffffff;
   min-height: 100vh;
-    background-color: #1e4250;
+  background-color: #1e4250;
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
-  
-    padding-top: 80px;
-
+  padding-top: 80px;
 }
 
 /* TOP BACK LINK --------------------------------------------------------- */
@@ -49,7 +46,7 @@ body {
 }
 
 .back-link .arrow {
-  font-size: 1.1rem;
+  font-size: 1rem;
 }
 
 /* LAYOUT ----------------------------------------------------------------- */
@@ -66,7 +63,6 @@ body {
 .card {
   background: rgba(3, 54, 70, 0.9); /* dark teal with transparency */
   border-radius: 26px;
-  backdrop-filter: blur(3px);
   box-shadow: 0 18px 40px rgba(0, 0, 0, 0.45);
 }
 
@@ -239,6 +235,25 @@ body {
   font-weight: 600;
 }
 
+/* PAYMENT SECTION -------------------------------------------------------- */
+.payment-section {
+  margin-top: 24px;
+  padding-top: 18px;
+  border-top: 1px solid rgba(255, 255, 255, 0.25);
+  display: none; /* مخفي بالبداية */
+}
+
+.payment-title {
+  font-size: 1.2rem;
+  font-weight: 600;
+  margin-bottom: 14px;
+}
+
+/* لإخفاء/إظهار حقول الكريدت كارد */
+#card-fields {
+  display: none;
+}
+
 /* RESPONSIVE ------------------------------------------------------------- */
 @media (max-width: 900px) {
   .booking-layout {
@@ -267,7 +282,6 @@ body {
     font-size: 2.1rem;
   }
 }
-
  </style>
 </head>
 
@@ -276,13 +290,11 @@ body {
   <!-- NAVBAR AT THE VERY TOP -->
   <?php include 'navbar.html'; ?>
 
-  
-
-<br><br><br><br>
+  <br><br><br><br>
 
   <!-- Back link bar -->
   <div class="top-bar">
-    <a href="#" class="back-link">
+    <a href="hotelInfo.php" class="back-link">
       <span class="arrow">&larr;</span>
       Back to rooms
     </a>
@@ -295,6 +307,7 @@ body {
       <h1 class="card-title">Booking Details</h1>
       <p class="card-subtitle">Select your dates and enter your information</p>
 
+      <!-- حطي action و method اللي بدك ياهن بعدين -->
       <form class="booking-form" action="#" method="post">
 
         <!-- Check-in -->
@@ -302,7 +315,7 @@ body {
           <label class="label-strong">Check-in Date</label>
           <div class="input-wrapper with-icon">
             <span class="field-icon">&#128197;</span>
-            <input type="text" placeholder="Select Date">
+            <input type="text" name="checkin" placeholder="Select Date">
           </div>
         </div>
 
@@ -311,7 +324,7 @@ body {
           <label class="label-strong">Check-out Date</label>
           <div class="input-wrapper with-icon">
             <span class="field-icon">&#128197;</span>
-            <input type="text" placeholder="Select Date">
+            <input type="text" name="checkout" placeholder="Select Date">
           </div>
         </div>
 
@@ -319,11 +332,11 @@ body {
         <div class="form-group">
           <label class="label-strong">Number of Guests</label>
           <div class="select-wrapper">
-            <select>
-              <option>1 Guest</option>
-              <option>2 Guests</option>
-              <option>3 Guests</option>
-              <option>4 Guests</option>
+            <select name="guests">
+              <option value="1">1 Guest</option>
+              <option value="2">2 Guests</option>
+              <option value="3">3 Guests</option>
+              <option value="4">4 Guests</option>
             </select>
           </div>
         </div>
@@ -332,7 +345,7 @@ body {
         <div class="form-group">
           <label class="label-strong">First Name</label>
           <div class="input-wrapper">
-            <input type="text">
+            <input type="text" name="first_name">
           </div>
         </div>
 
@@ -340,7 +353,7 @@ body {
         <div class="form-group">
           <label class="label-strong">Last Name</label>
           <div class="input-wrapper">
-            <input type="text">
+            <input type="text" name="last_name">
           </div>
         </div>
 
@@ -348,11 +361,56 @@ body {
         <div class="form-group">
           <label class="label-strong">Email</label>
           <div class="input-wrapper">
-            <input type="email">
+            <input type="email" name="email">
           </div>
         </div>
 
-        <button type="submit" class="btn-primary">Confirm Booking</button>
+        <!-- زر أول: يظهر قسم الدفع بدل ما يبعث الفورم -->
+        <button type="button" class="btn-primary" id="show-payment-btn">
+          Confirm Booking
+        </button>
+
+        <!-- PAYMENT SECTION (يظهر بعد الضغط على Confirm Booking) -->
+        <!-- PAYMENT SECTION (يظهر بعد الضغط على Confirm Booking) -->
+<div class="payment-section" id="payment-section">
+  <p class="payment-title">Payment Method</p>
+
+  <!-- Payment Method select -->
+  <div class="form-group">
+    <label class="label-strong">Choose Payment Method</label>
+    <div class="select-wrapper">
+      <select name="payment_method" id="payment-method">
+        <option value="hotel">Pay at Hotel</option>
+        <option value="card">Credit Card</option>
+      </select>
+    </div>
+  </div>
+
+  <!-- Credit Card fields - تظهر فقط إذا اختار Credit Card -->
+  <div id="card-fields" style="display:none;">
+    <div class="form-group">
+      <label class="label-strong">Card Number</label>
+      <div class="input-wrapper">
+        <input type="text" name="card_number" placeholder="xxxx xxxx xxxx xxxx">
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label class="label-strong">Card Password / CVV</label>
+      <div class="input-wrapper">
+        <input type="password" name="card_password" placeholder="***">
+      </div>
+    </div>
+  </div>
+
+  <!-- الزر النهائي اللي فعلياً بيبعث الفورم -->
+  <button type="submit" class="btn-primary">
+    Submit Booking
+  </button>
+</div>
+
+        
+
       </form>
     </section>
 
@@ -388,6 +446,31 @@ body {
 
   <!-- FOOTER -->
   <?php include 'footer.html'; ?>
+
+  <!-- JS بسيط لإظهار قسم الدفع + إظهار حقول الكريدت كارد -->
+ <script>
+  // Show payment section
+  const showPaymentBtn = document.getElementById('show-payment-btn');
+  const paymentSection = document.getElementById('payment-section');
+
+  showPaymentBtn.addEventListener('click', function () {
+    paymentSection.style.display = 'block';
+    paymentSection.scrollIntoView({ behavior: 'smooth' });
+  });
+
+  // Show credit card fields only if "Credit Card" selected
+  const paymentSelect = document.getElementById('payment-method');
+  const cardFields = document.getElementById('card-fields');
+
+  paymentSelect.addEventListener('change', function () {
+    if (this.value === 'card') {
+      cardFields.style.display = 'block';
+    } else {
+      cardFields.style.display = 'none';
+    }
+  });
+</script>
+
 
 </body>
 </html>

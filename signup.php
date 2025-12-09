@@ -100,31 +100,9 @@ body {
   transform: translateY(-1px);
 }
 
-/* Responsive */
-@media (max-width: 768px) {
-  .signup-card {
-    padding: 28px 22px 24px;
-  }
 
-  .signup-card h1 {
-    font-size: 2.2rem;
-    text-align: left; /* keep like the design */
-    margin-bottom: 24px;
-  }
 
-  .save-btn {
-    width: 100%;
-    float: none;
-    margin-top: 4px;
-    text-align: center;
-  }
-}
 
-@media (max-width: 480px) {
-  .signup-card h1 {
-    font-size: 1.8rem;
-  }
-}
 
   </style>
 </head>
