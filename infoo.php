@@ -42,61 +42,6 @@
       text-decoration: none;
     }
 
-    /* ---------- NAVBAR ---------- */
-    .navbar {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      background-color: var(--bg-dark);
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 12px 40px;
-      z-index: 1000;
-    }
-
-    .logo {
-      display: flex;
-      align-items: center;
-      gap: 14px;
-    }
-
-    .logo img {
-      height: 50px;
-    }
-
-    .logo span {
-      font-size: 18px;
-      font-weight: 600;
-      color: var(--text-main);
-      letter-spacing: 1px;
-    }
-
-    .nav-links {
-      list-style: none;
-      display: flex;
-      gap: 32px;
-      align-items: center;
-    }
-
-    .nav-links li a {
-      font-size: 13px;
-      text-transform: uppercase;
-      letter-spacing: 1px;
-      color: var(--subtle);
-    }
-
-    .nav-links li a:hover {
-      color: #ffffff;
-    }
-
-    .menu-toggle {
-      font-size: 26px;
-      color: #ffffff;
-      display: none;
-      cursor: pointer;
-    }
 
     /* ---------- HERO ---------- */
     .hero-section {
@@ -306,171 +251,20 @@
       max-width: 700px;
     }
 
-    /* ---------- FOOTER ---------- */
-    .footer {
-      background-color: #2a4e61;
-      color: #d7d7d7;
-      padding: 55px 9%;
-      display: flex;
-      justify-content: space-between;
-      gap: 60px;
-      flex-wrap: wrap;
-    }
-
-    .footer-item {
-      flex: 1;
-      min-width: 260px;
-    }
-
-    .footer h2 {
-      font-size: 24px;
-      margin-bottom: 22px;
-      color: #ffffff;
-    }
-
-    .footer-item p {
-      font-size: 14px;
-      line-height: 1.7;
-      margin: 10px 0;
-      color: #e0e0e0;
-      max-width: 430px;
-    }
-
-    .footer-item i {
-      color: #cba135;
-      font-size: 18px;
-      margin-right: 10px;
-    }
-
-    .social-icons i {
-      font-size: 18px;
-      color: #cba135;
-      margin-right: 20px;
-      border: 2px solid #cba135;
-      padding: 9px;
-      border-radius: 50%;
-      width: 18px;
-      height: 18px;
-      text-align: center;
-      line-height: 18px;
-      transition: 0.3s;
-      cursor: pointer;
-    }
-
-    .social-icons i:hover {
-      background-color: #cba135;
-      color: #2a4e61;
-    }
-
-    .highlight {
-      color: #ffc54d;
-      font-weight: 600;
-    }
-
-    /* ---------- RESPONSIVE ---------- */
-    @media (max-width: 900px) {
-      .rooms-row {
-        grid-template-columns: 1fr;
-      }
-    }
-
-    @media (max-width: 768px) {
-      .navbar {
-        padding: 10px 18px;
-      }
-
-      .nav-links {
-        position: absolute;
-        top: 54px;
-        right: 0;
-        background-color: var(--bg-dark);
-        width: 100%;
-        flex-direction: column;
-        align-items: center;
-        display: none;
-        padding: 14px 0 20px;
-      }
-
-      .nav-links.active {
-        display: flex;
-      }
-
-      .menu-toggle {
-        display: block;
-      }
-
-      .hero-section {
-        height: 320px;
-      }
-
-      .hero-overlay {
-        padding-top: 70px;
-      }
-
-      .hero-title {
-        font-size: 30px;
-      }
-
-      .tabs {
-        gap: 22px;
-        font-size: 11px;
-        flex-wrap: wrap;
-      }
-
-      main {
-        width: 92%;
-      }
-
-      .details-box {
-        flex-direction: column;
-        align-items: flex-start;
-      }
-
-      .book-btn {
-        align-self: flex-end;
-      }
-    }
-
-    @media (max-width: 480px) {
-      .section-header {
-        font-size: 16px;
-        padding: 8px 18px;
-      }
-
-      .about-box {
-        font-size: 12px;
-      }
-    }
+   
   </style>
 </head>
 
 <body>
-  <!-- NAVBAR -->
-  <header class="navbar">
-    <div class="logo">
-      <img src="logo.png" alt="Bookease Logo" />
-      
-    </div>
+ <?php include 'navbar.html'; ?>
 
-    <nav>
-      <ul class="nav-links" id="nav-links">
-        <li><a href="#">Home</a></li>
-        <li><a href="#">Search</a></li>
-        <li><a href="#">Favorites</a></li>
-        <li><a href="#">Log in</a></li>
-      </ul>
-    </nav>
-
-    <div class="menu-toggle" id="menu-toggle">
-      <i class="fas fa-bars"></i>
-    </div>
-  </header>
+   
 
   <!-- HERO -->
   <section class="hero-section">
     <img src="images/hotel.png" class="hero-img" alt="">
     <div class="hero-overlay">
-      <h1 class="hero-title">Le Gray Beirut</h1>
+      <h1 class="hero-title">Le nadeen Beirut</h1>
     </div>
   </section>
 
@@ -595,8 +389,84 @@
 
       </div>
 
+   <div id="extra-rooms" class="hidden">
+
+        <!-- ROOM 2 -->
+        <div class="rooms-row">
+          <div class="room-photo-card">
+            <img src="images/room.jpg" alt="">
+          </div>
+
+          <div class="room-details-card">
+            <div>
+              <h3 class="room-title">Deluxe City View Room</h3>
+              <p class="room-meta">1 King Bed • City View • 45 sqm</p>
+
+              <div class="room-list">
+                <span>✓ City View</span><span>✓ Free WiFi</span>
+                <span>✓ King Bed</span><span>✓ Breakfast</span>
+                <span>✓ Work Desk</span><span>✓ Smart TV</span>
+              </div>
+            </div>
+
+            <div class="room-bottom">
+              <span><i class="fa-solid fa-user-group"></i> 2</span>
+              <span class="room-price">320$ US / night</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- ROOM 3 -->
+        <div class="rooms-row">
+          <div class="room-photo-card">
+            <img src="images/room.jpg" alt="">
+          </div>
+
+          <div class="room-details-card">
+            <div>
+              <h3 class="room-title">Family Suite</h3>
+              <p class="room-meta">2 Bedrooms • Living Room • 110 sqm</p>
+
+              <div class="room-list">
+                <span>✓ Sea & City View</span><span>✓ Free WiFi</span>
+                <span>✓ 2 King Beds</span><span>✓ Breakfast</span>
+                <span>✓ Kitchenette</span><span>✓ Smart TV</span>
+              </div>
+            </div>
+
+            <div class="room-bottom">
+              <span><i class="fa-solid fa-user-group"></i> 5</span>
+              <span class="room-price">650$ US / night</span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
       <!-- BUTTON -->
       <button id="show-more-rooms" class="rooms-more">Show more rooms</button>
+
+    </section>
+
+  </main>
+
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      const btn = document.getElementById("show-more-rooms");
+      const extra = document.getElementById("extra-rooms");
+
+      btn.addEventListener("click", () => {
+        if (extra.classList.contains("hidden")) {
+          extra.classList.remove("hidden");
+          btn.textContent = "Show less rooms";
+        } else {
+          extra.classList.add("hidden");
+          btn.textContent = "Show more rooms";
+        }
+      });
+    });
+  </script>
+
 
     </section>
      <hr class="section-divider" />
@@ -644,44 +514,7 @@
       </div>
     </section>
   </main>
-
-  <!-- FOOTER -->
-  <footer class="footer">
-    <div class="footer-item">
-      <h2>Contact Us</h2>
-      <p>
-        <i class="fa-solid fa-location-dot"></i>
-        123 Signature Boulevard<br />
-        Preah Sihanouk, Cambodia
-      </p>
-      <p>
-        <i class="fa-solid fa-phone"></i>
-        +1 (555) 123-4567
-      </p>
-      <p>
-        <i class="fa-solid fa-envelope"></i>
-        info@thesignature.com
-      </p>
-    </div>
-
-    <div class="footer-item">
-      <h2>Stay Connected</h2>
-      <p>
-        Follow us on social media for updates<br />
-        and exclusive offers
-      </p>
-      <div class="social-icons" style="margin: 25px 0">
-        <i class="fab fa-facebook-f"></i>
-        <i class="fab fa-twitter"></i>
-        <i class="fab fa-instagram"></i>
-      </div>
-      <p>
-        Opening Hours<br />
-        <span class="highlight">24/7 Reception</span>
-      </p>
-    </div>
-  </footer>
-
+  <?php include 'footer.html'; ?>
   <script>
     const toggle = document.getElementById("menu-toggle");
     const links = document.getElementById("nav-links");

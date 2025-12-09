@@ -254,34 +254,7 @@ body {
   display: none;
 }
 
-/* RESPONSIVE ------------------------------------------------------------- */
-@media (max-width: 900px) {
-  .booking-layout {
-    align-items: stretch;
-  }
 
-  .card-left,
-  .card-right {
-    max-width: 460px;
-  }
-
-  .card-right {
-    margin-top: 10px;
-  }
-}
-
-@media (max-width: 520px) {
-  .card-left,
-  .card-right {
-    border-radius: 22px;
-    padding-left: 22px;
-    padding-right: 22px;
-  }
-
-  .card-title {
-    font-size: 2.1rem;
-  }
-}
  </style>
 </head>
 
