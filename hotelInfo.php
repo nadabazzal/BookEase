@@ -317,26 +317,8 @@
 </head>
 
 <body>
-  <!-- NAVBAR -->
-  <header class="navbar">
-    <div class="logo">
-      <img src="logo.png" alt="Bookease Logo" />
-      
-    </div>
-
-    <nav>
-      <ul class="nav-links" id="nav-links">
-        <li><a href="#">Home</a></li>
-        <li><a href="#">Search</a></li>
-        <li><a href="#">Favorites</a></li>
-        <li><a href="#">Log in</a></li>
-      </ul>
-    </nav>
-
-    <div class="menu-toggle" id="menu-toggle">
-      <i class="fas fa-bars"></i>
-    </div>
-  </header>
+  
+  <?php include 'navbar.html'; ?>
 
   <!-- HERO -->
   <section class="hero-section">
@@ -517,50 +499,7 @@
     </section>
   </main>
 
-  <!-- FOOTER -->
-  <footer class="footer">
-    <div class="footer-item">
-      <h2>Contact Us</h2>
-      <p>
-        <i class="fa-solid fa-location-dot"></i>
-        123 Signature Boulevard<br />
-        Preah Sihanouk, Cambodia
-      </p>
-      <p>
-        <i class="fa-solid fa-phone"></i>
-        +1 (555) 123-4567
-      </p>
-      <p>
-        <i class="fa-solid fa-envelope"></i>
-        info@thesignature.com
-      </p>
-    </div>
+    <?php include 'footer.html'; ?>
 
-    <div class="footer-item">
-      <h2>Stay Connected</h2>
-      <p>
-        Follow us on social media for updates<br />
-        and exclusive offers
-      </p>
-      <div class="social-icons" style="margin: 25px 0">
-        <i class="fab fa-facebook-f"></i>
-        <i class="fab fa-twitter"></i>
-        <i class="fab fa-instagram"></i>
-      </div>
-      <p>
-        Opening Hours<br />
-        <span class="highlight">24/7 Reception</span>
-      </p>
-    </div>
-  </footer>
-
-  <script>
-    const toggle = document.getElementById("menu-toggle");
-    const links = document.getElementById("nav-links");
-
-    toggle.addEventListener("click", () => {
-      links.classList.toggle("active");
-    });
-  </script>
 </body>
 </html>
