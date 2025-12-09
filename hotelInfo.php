@@ -145,11 +145,7 @@
       opacity: 0.9;
     }
 
-    .tabs a:hover {
-      opacity: 1;
-    }
-
-    /* ---------- SECTIONS GENERAL ---------- */
+    /* ---------- CONTENT ---------- */
     main {
       width: 90%;
       max-width: 1100px;
@@ -310,15 +306,165 @@
       max-width: 700px;
     }
 
+    /* ---------- FOOTER ---------- */
+    .footer {
+      background-color: #2a4e61;
+      color: #d7d7d7;
+      padding: 55px 9%;
+      display: flex;
+      justify-content: space-between;
+      gap: 60px;
+      flex-wrap: wrap;
+    }
 
+    .footer-item {
+      flex: 1;
+      min-width: 260px;
+    }
 
+    .footer h2 {
+      font-size: 24px;
+      margin-bottom: 22px;
+      color: #ffffff;
+    }
 
+    .footer-item p {
+      font-size: 14px;
+      line-height: 1.7;
+      margin: 10px 0;
+      color: #e0e0e0;
+      max-width: 430px;
+    }
+
+    .footer-item i {
+      color: #cba135;
+      font-size: 18px;
+      margin-right: 10px;
+    }
+
+    .social-icons i {
+      font-size: 18px;
+      color: #cba135;
+      margin-right: 20px;
+      border: 2px solid #cba135;
+      padding: 9px;
+      border-radius: 50%;
+      width: 18px;
+      height: 18px;
+      text-align: center;
+      line-height: 18px;
+      transition: 0.3s;
+      cursor: pointer;
+    }
+
+    .social-icons i:hover {
+      background-color: #cba135;
+      color: #2a4e61;
+    }
+
+    .highlight {
+      color: #ffc54d;
+      font-weight: 600;
+    }
+
+    /* ---------- RESPONSIVE ---------- */
+    @media (max-width: 900px) {
+      .rooms-row {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 768px) {
+      .navbar {
+        padding: 10px 18px;
+      }
+
+      .nav-links {
+        position: absolute;
+        top: 54px;
+        right: 0;
+        background-color: var(--bg-dark);
+        width: 100%;
+        flex-direction: column;
+        align-items: center;
+        display: none;
+        padding: 14px 0 20px;
+      }
+
+      .nav-links.active {
+        display: flex;
+      }
+
+      .menu-toggle {
+        display: block;
+      }
+
+      .hero-section {
+        height: 320px;
+      }
+
+      .hero-overlay {
+        padding-top: 70px;
+      }
+
+      .hero-title {
+        font-size: 30px;
+      }
+
+      .tabs {
+        gap: 22px;
+        font-size: 11px;
+        flex-wrap: wrap;
+      }
+
+      main {
+        width: 92%;
+      }
+
+      .details-box {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+
+      .book-btn {
+        align-self: flex-end;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .section-header {
+        font-size: 16px;
+        padding: 8px 18px;
+      }
+
+      .about-box {
+        font-size: 12px;
+      }
+    }
   </style>
 </head>
 
 <body>
-  
-  <?php include 'navbar.html'; ?>
+  <!-- NAVBAR -->
+  <header class="navbar">
+    <div class="logo">
+      <img src="logo.png" alt="Bookease Logo" />
+      
+    </div>
+
+    <nav>
+      <ul class="nav-links" id="nav-links">
+        <li><a href="#">Home</a></li>
+        <li><a href="#">Search</a></li>
+        <li><a href="#">Favorites</a></li>
+        <li><a href="#">Log in</a></li>
+      </ul>
+    </nav>
+
+    <div class="menu-toggle" id="menu-toggle">
+      <i class="fas fa-bars"></i>
+    </div>
+  </header>
 
   <!-- HERO -->
   <section class="hero-section">
@@ -499,7 +645,50 @@
     </section>
   </main>
 
-    <?php include 'footer.html'; ?>
+  <!-- FOOTER -->
+  <footer class="footer">
+    <div class="footer-item">
+      <h2>Contact Us</h2>
+      <p>
+        <i class="fa-solid fa-location-dot"></i>
+        123 Signature Boulevard<br />
+        Preah Sihanouk, Cambodia
+      </p>
+      <p>
+        <i class="fa-solid fa-phone"></i>
+        +1 (555) 123-4567
+      </p>
+      <p>
+        <i class="fa-solid fa-envelope"></i>
+        info@thesignature.com
+      </p>
+    </div>
 
+    <div class="footer-item">
+      <h2>Stay Connected</h2>
+      <p>
+        Follow us on social media for updates<br />
+        and exclusive offers
+      </p>
+      <div class="social-icons" style="margin: 25px 0">
+        <i class="fab fa-facebook-f"></i>
+        <i class="fab fa-twitter"></i>
+        <i class="fab fa-instagram"></i>
+      </div>
+      <p>
+        Opening Hours<br />
+        <span class="highlight">24/7 Reception</span>
+      </p>
+    </div>
+  </footer>
+
+  <script>
+    const toggle = document.getElementById("menu-toggle");
+    const links = document.getElementById("nav-links");
+
+    toggle.addEventListener("click", () => {
+      links.classList.toggle("active");
+    });
+  </script>
 </body>
 </html>
