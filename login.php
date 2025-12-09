@@ -115,35 +115,7 @@ body {
   margin-bottom: 10px;
 }
 
-/* Responsive */
-@media (max-width: 768px) {
-  .login-card {
-    padding: 28px 22px 24px;
-  }
 
-  .login-card h1 {
-    font-size: 2rem;
-    text-align: center;
-    margin-bottom: 24px;
-  }
-
-  .login-btn {
-    width: 100%;
-    float: none;
-    margin-top: 4px;
-    text-align: center;
-  }
-
-  .links {
-    margin-top: 28px;
-  }
-}
-
-@media (max-width: 480px) {
-  .login-card h1 {
-    font-size: 1.7rem;
-  }
-}
 
   </style>
 </head>
