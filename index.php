@@ -1,24 +1,9 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+   
      <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600&family=Playfair+Display:wght@400;500;600&display=swap" rel="stylesheet">
-
-
-
-<!-- In <head> of your main page -->
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600&family=Poppins:wght@300;400;500&display=swap" rel="stylesheet">
-
-<link rel="stylesheet"
-      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
-      integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA=="
-      crossorigin="anonymous" referrerpolicy="no-referrer" />
-
 
 
 
@@ -95,7 +80,7 @@
       <div class="how-column">
         <div class="how-card">
           <div class="how-card-header">
-            <span class="how-icon">🔍</span>
+<i class="fas fa-search"></i>
             <span class="how-step-number">01</span>
           </div>
           <h3 class="how-card-title">Search for your city</h3>
@@ -104,7 +89,7 @@
 
         <div class="how-card">
           <div class="how-card-header">
-            <span class="how-icon">🏨</span>
+<i class="fas fa-hotel"></i>
             <span class="how-step-number">02</span>
           </div>
           <h3 class="how-card-title">Compare hotels</h3>
@@ -122,8 +107,8 @@
       <!-- عمود يمين -->
       <div class="how-column">
         <div class="how-card">
-          <div class="how-card-header">
-            <span class="how-icon">👥</span>
+          <div class="how-card-header"><i class="fas fa-users"></i>
+
             <span class="how-step-number">03</span>
           </div>
           <h3 class="how-card-title">Check availability</h3>
@@ -132,7 +117,7 @@
 
         <div class="how-card">
           <div class="how-card-header">
-            <span class="how-icon">👤</span>
+<i class="fas fa-user"></i>
             <span class="how-step-number">04</span>
           </div>
           <h3 class="how-card-title">Book your hotel</h3>
