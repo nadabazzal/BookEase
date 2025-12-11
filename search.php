@@ -57,7 +57,7 @@ if ($selected_city !== '') {
 
     // Use ONE query variable: $sql
     // Use alias h for hotels
-    $sql = "
+   $sql = "
         SELECT 
             h.hotel_id, 
             h.hotel_name, 
@@ -65,8 +65,10 @@ if ($selected_city !== '') {
             h.rating, 
             h.city, 
             h.country, 
-            h.base_price
+            h.base_price,
+            h.image
         FROM hotels h
+       
         WHERE h.city = '$city_safe'
           AND h.status = 'approved'
     ";
@@ -493,11 +495,13 @@ if ($selected_city !== '') {
       <?php else: ?>
         <?php foreach ($hotels as $hotel): ?>
           <div class="hotel-card">
-            <img
-              src="images/hotel.png"
-              alt="Hotel"
-              class="hotel-image"
-            />
+            <?php
+$imagePath = (!empty($hotel['image'])) 
+    ? htmlspecialchars($hotel['image']) 
+    : 'images/hotel.png';
+?>
+<img src="<?php echo $imagePath; ?>" alt="Hotel" class="hotel-image">
+
             <div class="hotel-info">
               <div>
                 <div class="hotel-title">
