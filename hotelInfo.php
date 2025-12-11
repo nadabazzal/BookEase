@@ -42,61 +42,6 @@
       text-decoration: none;
     }
 
-    /* ---------- NAVBAR ---------- */
-    .navbar {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      background-color: var(--bg-dark);
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 12px 40px;
-      z-index: 1000;
-    }
-
-    .logo {
-      display: flex;
-      align-items: center;
-      gap: 14px;
-    }
-
-    .logo img {
-      height: 50px;
-    }
-
-    .logo span {
-      font-size: 18px;
-      font-weight: 600;
-      color: var(--text-main);
-      letter-spacing: 1px;
-    }
-
-    .nav-links {
-      list-style: none;
-      display: flex;
-      gap: 32px;
-      align-items: center;
-    }
-
-    .nav-links li a {
-      font-size: 13px;
-      text-transform: uppercase;
-      letter-spacing: 1px;
-      color: var(--subtle);
-    }
-
-    .nav-links li a:hover {
-      color: #ffffff;
-    }
-
-    .menu-toggle {
-      font-size: 26px;
-      color: #ffffff;
-      display: none;
-      cursor: pointer;
-    }
 
     /* ---------- HERO ---------- */
     .hero-section {
@@ -137,7 +82,7 @@
       background: #1c4454;
       padding: 12px 10px;
       gap: 60px;
-      font-size: 12px;
+      font-size: 20px;
     }
 
     .tabs a {
@@ -145,7 +90,11 @@
       opacity: 0.9;
     }
 
+<<<<<<< HEAD
+    /* ---------- SECTIONS GENERAL ---------- */
+=======
     /* ---------- CONTENT ---------- */
+>>>>>>> 18e3c9d1fbe54710805e334d256d691277a8fe64
     main {
       width: 90%;
       max-width: 1100px;
@@ -180,23 +129,15 @@
       font-size: 13px;
     }
 
-    .rating-pill {
-      background: var(--accent);
-      padding: 9px 18px;
-      border-radius: 14px;
-    }
-
+   
     .book-btn {
-      background: #0f4155;
+      background: #fdfdfdff;
+color:0f4155
       padding: 10px 24px;
       border-radius: 30px;
       cursor: pointer;
       border: 1px solid #ffffff44;
       white-space: nowrap;
-    }
-
-    .book-btn:hover {
-      background: #0f4155;
     }
 
     /* ---------- ROOMS ---------- */
@@ -491,17 +432,21 @@
       <div class="details-box">
         <div class="details-left">
           <div class="detail-item">
-            📍 <span>Downtown Beirut, Lebanon</span>
+            <i class="fas fa-map-marker-alt"></i>
+ <span>Downtown Beirut, Lebanon</span>
           </div>
 
-          <div class="detail-item rating-pill">9.3</div>
+  <div class="detail-item rating-pill"><i class="fas fa-star"></i>
+9.3</div>
 
           <div class="detail-item">
-            📞 <span>+961 81/363443</span>
+            <i class="fas fa-phone"></i>
+ <span>+961 81/363443</span>
           </div>
 
           <div class="detail-item">
-            📧 <span>legray@gmail.com</span>
+            <i class="fas fa-envelope"></i>
+ <span>legray@gmail.com</span>
           </div>
         </div>
 

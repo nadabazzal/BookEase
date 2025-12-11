@@ -1,3 +1,31 @@
+<?php
+session_start();
+
+
+// 2. Connect to database
+$conn = new mysqli('localhost', 'root', '', 'hotel_management_system');
+
+// 3. Get room_id from URL, e.g. booking.php?room_id=3
+
+
+$room_id = (int) $_GET['room_id'];
+
+// 4. Fetch room + hotel info for summary & price
+$sql = "
+    SELECT r.room_id, r.price, r.capacity, r.room_type, h.hotel_name
+    FROM rooms r
+    JOIN hotels h ON r.hotel_id = h.hotel_id
+    WHERE r.room_id = ?
+";
+$stmt = $conn->prepare($sql);
+$stmt->bind_param("i", $room_id);
+$stmt->execute();
+$result = $stmt->get_result();
+
+$room = $result->fetch_assoc();
+$stmt->close();
+$conn->close();
+?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -280,15 +308,18 @@ body {
       <h1 class="card-title">Booking Details</h1>
       <p class="card-subtitle">Select your dates and enter your information</p>
 
-      <!-- حطي action و method اللي بدك ياهن بعدين -->
-      <form class="booking-form" action="#" method="post">
+      <!-- Form sends data to process_booking.php -->
+      <form class="booking-form" action="process_booking.php" method="post">
+
+        <!-- pass room_id (and user_id from session if you want) -->
+        <input type="hidden" name="room_id" value="<?php echo htmlspecialchars($room['room_id']); ?>">
 
         <!-- Check-in -->
         <div class="form-group">
           <label class="label-strong">Check-in Date</label>
           <div class="input-wrapper with-icon">
             <span class="field-icon">&#128197;</span>
-            <input type="text" name="checkin" placeholder="Select Date">
+            <input type="date" name="checkin" required>
           </div>
         </div>
 
@@ -297,7 +328,7 @@ body {
           <label class="label-strong">Check-out Date</label>
           <div class="input-wrapper with-icon">
             <span class="field-icon">&#128197;</span>
-            <input type="text" name="checkout" placeholder="Select Date">
+            <input type="date" name="checkout" required>
           </div>
         </div>
 
@@ -305,7 +336,7 @@ body {
         <div class="form-group">
           <label class="label-strong">Number of Guests</label>
           <div class="select-wrapper">
-            <select name="guests">
+            <select name="guests" required>
               <option value="1">1 Guest</option>
               <option value="2">2 Guests</option>
               <option value="3">3 Guests</option>
@@ -318,7 +349,7 @@ body {
         <div class="form-group">
           <label class="label-strong">First Name</label>
           <div class="input-wrapper">
-            <input type="text" name="first_name">
+            <input type="text" name="first_name" required>
           </div>
         </div>
 
@@ -326,7 +357,7 @@ body {
         <div class="form-group">
           <label class="label-strong">Last Name</label>
           <div class="input-wrapper">
-            <input type="text" name="last_name">
+            <input type="text" name="last_name" required>
           </div>
         </div>
 
@@ -334,55 +365,53 @@ body {
         <div class="form-group">
           <label class="label-strong">Email</label>
           <div class="input-wrapper">
-            <input type="email" name="email">
+            <input type="email" name="email" required>
           </div>
         </div>
 
-        <!-- زر أول: يظهر قسم الدفع بدل ما يبعث الفورم -->
+        <!-- First button: show payment section -->
         <button type="button" class="btn-primary" id="show-payment-btn">
           Confirm Booking
         </button>
 
-        <!-- PAYMENT SECTION (يظهر بعد الضغط على Confirm Booking) -->
-        <!-- PAYMENT SECTION (يظهر بعد الضغط على Confirm Booking) -->
-<div class="payment-section" id="payment-section">
-  <p class="payment-title">Payment Method</p>
+        <!-- PAYMENT SECTION -->
+        <div class="payment-section" id="payment-section">
+          <p class="payment-title">Payment Method</p>
 
-  <!-- Payment Method select -->
-  <div class="form-group">
-    <label class="label-strong">Choose Payment Method</label>
-    <div class="select-wrapper">
-      <select name="payment_method" id="payment-method">
-        <option value="hotel">Pay at Hotel</option>
-        <option value="card">Credit Card</option>
-      </select>
-    </div>
-  </div>
+          <!-- Payment Method select -->
+          <div class="form-group">
+            <label class="label-strong">Choose Payment Method</label>
+            <div class="select-wrapper">
+              <!-- values MUST match enum in DB: 'credit_card','at_hotel' -->
+              <select name="payment_method" id="payment-method" required>
+                <option value="at_hotel">Pay at Hotel</option>
+                <option value="credit_card">Credit Card</option>
+              </select>
+            </div>
+          </div>
 
-  <!-- Credit Card fields - تظهر فقط إذا اختار Credit Card -->
-  <div id="card-fields" style="display:none;">
-    <div class="form-group">
-      <label class="label-strong">Card Number</label>
-      <div class="input-wrapper">
-        <input type="text" name="card_number" placeholder="xxxx xxxx xxxx xxxx">
-      </div>
-    </div>
+          <!-- Credit Card fields - فقط إذا اختار Credit Card -->
+          <div id="card-fields" style="display:none;">
+            <div class="form-group">
+              <label class="label-strong">Card Number</label>
+              <div class="input-wrapper">
+                <input type="text" name="card_number" placeholder="xxxx xxxx xxxx xxxx">
+              </div>
+            </div>
 
-    <div class="form-group">
-      <label class="label-strong">Card Password / CVV</label>
-      <div class="input-wrapper">
-        <input type="password" name="card_password" placeholder="***">
-      </div>
-    </div>
-  </div>
+            <div class="form-group">
+              <label class="label-strong">Card Password / CVV</label>
+              <div class="input-wrapper">
+                <input type="password" name="card_password" placeholder="***">
+              </div>
+            </div>
+          </div>
 
-  <!-- الزر النهائي اللي فعلياً بيبعث الفورم -->
-  <button type="submit" class="btn-primary">
-    Submit Booking
-  </button>
-</div>
-
-        
+          <!-- Final submit -->
+          <button type="submit" class="btn-primary">
+            Submit Booking
+          </button>
+        </div>
 
       </form>
     </section>
@@ -391,26 +420,29 @@ body {
     <section class="card card-right">
       <h1 class="card-title">Room Summary</h1>
 
-      <p class="room-type">Family Suite</p>
+      <p class="room-type">
+        <?php echo htmlspecialchars($room['hotel_name']); ?> – 
+        <?php echo htmlspecialchars($room['room_type']); ?>
+      </p>
       <p class="room-desc">
-        Spacious accommodation perfect for families,<br>
-        featuring separate sleeping areas
+        Enjoy a comfortable stay in this room type. <br>
+        Perfect for up to <?php echo (int)$room['capacity']; ?> guest(s).
       </p>
 
       <div class="room-info">
         <div class="row">
-          <span class="label">Room Size:</span>
-          <span class="value">600 sq ft</span>
+          <span class="label">Room Type:</span>
+          <span class="value"><?php echo htmlspecialchars($room['room_type']); ?></span>
         </div>
 
         <div class="row">
           <span class="label">Max Guests:</span>
-          <span class="value">4</span>
+          <span class="value"><?php echo (int)$room['capacity']; ?></span>
         </div>
 
         <div class="row">
-          <span class="label">Beds:</span>
-          <span class="value">1 King Bed</span>
+          <span class="label">Price per Night:</span>
+          <span class="value">$<?php echo number_format($room['price'], 2); ?></span>
         </div>
       </div>
     </section>
@@ -420,7 +452,7 @@ body {
   <!-- FOOTER -->
   <?php include 'footer.html'; ?>
 
-  <!-- JS بسيط لإظهار قسم الدفع + إظهار حقول الكريدت كارد -->
+  <!-- JS لإظهار الدفع + حقول الكريدت كارد -->
  <script>
   // Show payment section
   const showPaymentBtn = document.getElementById('show-payment-btn');
@@ -436,7 +468,7 @@ body {
   const cardFields = document.getElementById('card-fields');
 
   paymentSelect.addEventListener('change', function () {
-    if (this.value === 'card') {
+    if (this.value === 'credit_card') {
       cardFields.style.display = 'block';
     } else {
       cardFields.style.display = 'none';
