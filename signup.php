@@ -78,7 +78,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                  
         } else {
           
-            $errors[] = "Error while saving your account: " . mysqli_error($conn);
+            $errors[] = "Error while saving your account.Please try again " ;
         }
     }
 }
