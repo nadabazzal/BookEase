@@ -419,7 +419,7 @@ if ($resultFeat && mysqli_num_rows($resultFeat) > 0) {
           </div>
 
           <div class="detail-item rating-pill"><?php echo htmlspecialchars($hotel['rating']); ?></div>
-        <a href="search.php" class="btn-primary">Book Now</a><br>
+        <a href="booking.php?room_id=<?php echo $room['room_id']; ?>" class="btn-primary">Book Now</a><br>
       </div>
     </section>
 
