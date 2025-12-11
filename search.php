@@ -17,13 +17,29 @@ if ($resultCities && mysqli_num_rows($resultCities) > 0) {
         $cities[] = $row['city'];
     }
 }
+// HOTEL FEATURES
+$hotelFeatures = [];
+$sqlHF = "SELECT feature_id, feature_name FROM hotelsfeatures ORDER BY feature_name ASC";
+$resultHF = mysqli_query($conn, $sqlHF);
+while ($row = mysqli_fetch_assoc($resultHF)) {
+    $hotelFeatures[] = $row;
+}
 
-// 3) HANDLE SELECTED CITY AND LOAD HOTELS
-$selected_city = '';
+// ROOM FEATURES
+$roomFeatures = [];
+$sqlRF = "SELECT featurer_id, featurer_name FROM roomsfeatures ORDER BY featurer_name ASC";
+$resultRF = mysqli_query($conn, $sqlRF);
+while ($row = mysqli_fetch_assoc($resultRF)) {
+    $roomFeatures[] = $row;
+}
+
 $hotels = [];
+// 3) HANDLE SELECTED CITY AND LOAD HOTELS
+$selected_city      = isset($_GET['city']) ? $_GET['city'] : '';
 
-if (!empty($_GET['city'])) {
-    $selected_city = $_GET['city'];
+
+if (!empty($_POST['city'])) {
+    $selected_city = $_POST['city'];
     $city_safe = mysqli_real_escape_string($conn, $selected_city);
 
     $sqlHotels = "
@@ -31,8 +47,9 @@ if (!empty($_GET['city'])) {
         FROM hotels
         WHERE city = '$city_safe'
           AND status = 'approved'
-        ORDER BY base_price ASC
+       
     ";
+//run
 
     $resultHotels = mysqli_query($conn, $sqlHotels);
     if ($resultHotels && mysqli_num_rows($resultHotels) > 0) {
@@ -40,6 +57,59 @@ if (!empty($_GET['city'])) {
             $hotels[] = $row;
         }
     }
+    $selectedHotelFeat  = isset($_GET['hotel_features']) ? $_GET['hotel_features'] : [];
+if (!empty($selectedHotelFeat)) {
+        $hfIds = array_map('intval', $selectedHotelFeat);
+        $inHF = implode(',', $hfIds);
+
+        $sql .= "
+          AND h.hotel_id IN (
+            SELECT hotel_id
+            FROM hotels_features_map
+            WHERE feature_id IN ($inHF)
+            GROUP BY hotel_id
+            HAVING COUNT(DISTINCT feature_id) = " . count($hfIds) . "
+          )
+        ";
+    }
+$selectedRoomFeat   = isset($_GET['room_features']) ? $_GET['room_features'] : [];
+
+    if (!empty($selectedRoomFeat)) {
+        $rfIds = array_map('intval', $selectedRoomFeat);
+        $inRF = implode(',', $rfIds);
+
+        $sql .= "
+          AND h.hotel_id IN (
+            SELECT r.hotel_id
+            FROM rooms r
+            JOIN rooms_feature_map rfm ON rfm.room_id = r.room_id
+            WHERE rfm.featurer_id IN ($inRF)
+            GROUP BY r.hotel_id
+            HAVING COUNT(DISTINCT rfm.featurer_id) = " . count($rfIds) . "
+          )
+        ";
+    }
+$sort= isset($_GET['sort']) ? $_GET['sort'] : 'recommended';
+
+ switch ($sort) {
+        case 'price_asc':
+            $sql .= " ORDER BY h.base_price ASC";
+            break;
+        case 'price_desc':
+            $sql .= " ORDER BY h.base_price DESC";
+            break;
+        case 'rating':
+            $sql .= " ORDER BY h.rating DESC";
+            break;
+        case 'recommended':
+        default:
+            // Recommended: best rating, then cheaper price
+            $sql .= " ORDER BY h.rating DESC, h.base_price ASC";
+            $sort = 'recommended';
+            break;
+    }
+
+
 }
 ?>
 <!DOCTYPE html> 
@@ -48,9 +118,7 @@ if (!empty($_GET['city'])) {
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>BookEase – Hotel Deals</title>
-
-  <style>
-    /* ========= RESET بسيط ========= */
+<style>
     * {
       box-sizing: border-box;
       margin: 0;
@@ -68,27 +136,6 @@ if (!empty($_GET['city'])) {
       text-decoration: none;
     }
 
-    /* ========= الشريط العلوي (Navbar) ========= */
-    .top-bar {
-      background: #0078b6;
-      padding: 10px 30px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-    }
-
-    .top-bar .logo {
-      font-weight: bold;
-      font-size: 20px;
-    }
-
-    .top-bar .nav-links {
-      display: flex;
-      gap: 20px;
-      font-size: 14px;
-    }
-
-    /* ========= الحاوية الرئيسية ========= */
     .page-wrapper {
       max-width: 1100px;
       margin: 20px auto;
@@ -97,7 +144,6 @@ if (!empty($_GET['city'])) {
       overflow: hidden;
     }
 
-    /* الهيدر الداخلي (عنوان + بحث مدينة) */
     .inner-header {
       padding: 25px 30px 15px;
       text-align: center;
@@ -109,7 +155,8 @@ if (!empty($_GET['city'])) {
       letter-spacing: 1px;
       margin-bottom: 20px;
     }
- .city-search {
+
+    .city-search {
       display: inline-flex;
       align-items: center;
       background: #005c8a;
@@ -140,14 +187,12 @@ if (!empty($_GET['city'])) {
       cursor: pointer;
     }
 
-    /* ========= محتوى الصفحة (فلاتر + فنادق) ========= */
     .content {
       display: flex;
       padding: 20px 30px 30px;
       gap: 20px;
     }
 
-    /* ========= العمود الأيسر – الفلاتر ========= */
     .filters-column {
       width: 280px;
       flex-shrink: 0;
@@ -155,6 +200,13 @@ if (!empty($_GET['city'])) {
       flex-direction: column;
       gap: 20px;
     }
+    
+.results-column {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
 
     .filter-box {
       background: #013549;
@@ -170,7 +222,6 @@ if (!empty($_GET['city'])) {
       padding-bottom: 6px;
     }
 
-    /* زرار choose features */
     .toggle-btn {
       width: 100%;
       padding: 8px 10px;
@@ -190,26 +241,8 @@ if (!empty($_GET['city'])) {
       transform: translateY(-1px);
     }
 
-    /* --- صندوق الميزانية --- */
-    .budget-slider-wrapper {
-      margin-top: 10px;
-    }
-
-    .budget-values {
-      display: flex;
-      justify-content: space-between;
-      font-size: 13px;
-      margin-top: 6px;
-    }
-
-    input[type="range"] {
-      width: 100%;
-      accent-color: #ffcc33;
-    }
-
-    /* --- القوائم العمودية للأزرار --- */
     .pill-list {
-      display: none; /* مخفيين بالبداية – بيظهرو مع الزر */
+      display: none;
       flex-direction: column;
       gap: 8px;
       margin-top: 10px;
@@ -228,6 +261,8 @@ if (!empty($_GET['city'])) {
       cursor: pointer;
       transition: 0.2s;
       box-shadow: 0 1px 2px rgba(0, 0, 0, 0.25);
+      display: block;
+      user-select: none;
     }
 
     .pill-btn:hover {
@@ -235,12 +270,14 @@ if (!empty($_GET['city'])) {
       transform: translateY(-1px);
     }
 
-    /* ========= العمود الأيمن – نتائج الفنادق ========= */
-    .results-column {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      gap: 18px;
+    .pill-btn input {
+      display: none; /* hide real checkbox */
+    }
+
+    .pill-btn.active {
+      background: #4db6d3;
+      color: #ffffff;
+      transform: translateY(-1px);
     }
 
     .sort-row {
@@ -261,9 +298,9 @@ if (!empty($_GET['city'])) {
       color: #fff;
       outline: none;
       cursor: pointer;
+     
     }
 
-    /* كرت الفندق */
     .hotel-card {
       display: flex;
       background: #013549;
@@ -298,14 +335,13 @@ if (!empty($_GET['city'])) {
     }
 
     .hotel-stars {
-      font-size: 16px;
-      color: #ffcc33;
+      font-size: 14px;
       margin-bottom: 10px;
     }
 
     .hotel-bottom-row {
       display: flex;
-      justify-content: space-between;
+      justify-content: flex-start;
       align-items: center;
       gap: 10px;
     }
@@ -320,22 +356,13 @@ if (!empty($_GET['city'])) {
       font-weight: bold;
       cursor: pointer;
       transition: 0.2s;
+      text-decoration: none;
     }
 
     .more-info-btn:hover {
       background: #91c3d8;
       transform: translateY(-1px);
     }
-
-    .room-icons {
-      font-size: 18px;
-      opacity: 0.9;
-    }
-
-   
-
-   
-    
   </style>
 </head>
 
@@ -349,7 +376,7 @@ if (!empty($_GET['city'])) {
     <!-- العنوان والبحث عن مدينة -->
     <div class="inner-header">
       <h1>SEARCH BY CITY AND FILTER TO DISCOVER THE BEST HOTEL DEALS</h1>
-<form method="get" action="search.php">
+<form method="post" action="search.php">
           <div class="city-search">
           <select name="city" required>
             <option value="">Select a city</option>
@@ -362,130 +389,124 @@ if (!empty($_GET['city'])) {
           </select>
           <button type="submit">Search</button>
         </div>
-      </form>
+     
     </div>
     <!-- المحتوى: فلاتر + فنادق -->
-    <div class="content">
-      <!-- العمود الأيسر: الفلاتر -->
-      <div class="filters-column">
-        <!-- Hotel Features -->
-        <div class="filter-box">
-          <div class="filter-title">Hotel Features</div>
-          <!-- الزر اللي بيفتح/بسكر الفيتشرز -->
-          <button class="toggle-btn" data-label="Choose hotel features">
-            Choose hotel features
-          </button>
+   <div class="content">
+  <!-- ========== LEFT COLUMN: FILTERS ========== -->
+  <div class="filters-column">
+    <!-- Hotel Features -->
+    <div class="filter-box">
+      <div class="filter-title">Hotel Features</div>
+      <button type="button" class="toggle-btn" data-label="Choose hotel features">
+        Choose hotel features
+      </button>
 
-          <div class="pill-list">
-            <button class="pill-btn">Restaurant</button>
-            <button class="pill-btn">Swimming Pool</button>
-            <button class="pill-btn">Gym</button>
-            <button class="pill-btn">Non-Smoking Room</button>
-            <button class="pill-btn">Parking</button>
-            <button class="pill-btn">Free WiFi</button>
-            <button class="pill-btn">Room Service</button>
-            <button class="pill-btn">Pets Allowed</button>
-          </div>
-        </div>
-
-        <!-- Rooms Features -->
-        <div class="filter-box">
-          <div class="filter-title">Rooms Features</div>
-          <!-- الزر اللي بيفتح/بسكر room features -->
-          <button class="toggle-btn" data-label="Choose room features">
-            Choose room features
-          </button>
-
-          <div class="pill-list">
-            <button class="pill-btn">Private Bathroom</button>
-            <button class="pill-btn">Balcony</button>
-            <button class="pill-btn">Kitchen</button>
-            <button class="pill-btn">View</button>
-            <button class="pill-btn">Electrical Tools</button>
-          </div>
-        </div>
+      <div class="pill-list">
+        <?php foreach ($hotelFeatures as $hf): ?>
+          <label class="pill-btn feature-button">
+            <?php echo htmlspecialchars($hf['feature_name']); ?>
+            <!-- IMPORTANT: [] to send array -->
+            <input
+              type="checkbox"
+              name="hotel_features[]"
+              value="<?php echo (int)$hf['feature_id']; ?>"
+              <?php if (in_array($hf['feature_id'], $selectedHotelFeat)) echo 'checked'; ?>
+            >
+          </label>
+        <?php endforeach; ?>
       </div>
-
-      <!-- العمود الأيمن: كروت الفنادق -->
-      <div class="results-column">
-        <div class="sort-row">
-          <span>Sort By:</span>
-          <select class="sort-select">
-            <option>Recommended</option>
-            <option>Price: Low to High</option>
-            <option>Price: High to Low</option>
-            <option>Rating</option>
-          </select>
-        </div>
-
-        <!-- كرت 1 -->
-        <div class="hotel-card">
-          <img
-            src="https://via.placeholder.com/400x250"
-            alt="Hotel"
-            class="hotel-image"
-          />
-          <div class="hotel-info">
-            <div>
-              <div class="hotel-title">LE GRAY BEIRUT</div>
-              <div class="hotel-price">FROM $500/NIGHT</div>
-              <div class="hotel-stars">★★★★★</div>
-            </div>
-
-            <div class="hotel-bottom-row">
-              <button class="more-info-btn">Show more info</button>
-              
-            </div>
-          </div>
-        </div>
-
-        <!-- كرت 2 -->
-        <div class="hotel-card">
-          <img
-            src="https://via.placeholder.com/400x250"
-            alt="Hotel"
-            class="hotel-image"
-          />
-          <div class="hotel-info">
-            <div>
-              <div class="hotel-title">LE GRAY BEIRUT</div>
-              <div class="hotel-price">FROM $500/NIGHT</div>
-              <div class="hotel-stars">★★★★★</div>
-            </div>
-
-            <div class="hotel-bottom-row">
-              <button class="more-info-btn">Show more info</button>
-            
-            </div>
-          </div>
-        </div>
-
-        <!-- كرت 3 -->
-        <div class="hotel-card">
-          <img
-            src="https://via.placeholder.com/400x250"
-            alt="Hotel"
-            class="hotel-image"
-          />
-          <div class="hotel-info">
-            <div>
-              <div class="hotel-title">LE GRAY BEIRUT</div>
-              <div class="hotel-price">FROM $500/NIGHT</div>
-              <div class="hotel-stars">★★★★★</div>
-            </div>
-
-            <div class="hotel-bottom-row">
-              <button class="more-info-btn">Show more info</button>
-           
-            </div>
-          </div>
-        </div>
-      </div>
-      <!-- نهاية results-column -->
     </div>
-    <!-- نهاية content -->
+
+    <!-- Room Features -->
+    <div class="filter-box">
+      <div class="filter-title">Room Features</div>
+      <button type="button" class="toggle-btn" data-label="Choose room features">
+        Choose room features
+      </button>
+
+      <div class="pill-list">
+        <?php foreach ($roomFeatures as $rf): ?>
+          <label class="pill-btn feature-button">
+            <?php echo htmlspecialchars($rf['featurer_name']); ?>
+            <!-- ALSO [] here -->
+            <input
+              type="checkbox"
+              name="room_features[]"
+              value="<?php echo (int)$rf['featurer_id']; ?>"
+              <?php if (in_array($rf['featurer_id'], $selectedRoomFeat)) echo 'checked'; ?>
+            >
+          </label>
+        <?php endforeach; ?>
+      </div>
+    </div>
   </div>
-  <!-- نهاية page-wrapper -->
+
+  <!-- ========== RIGHT COLUMN: RESULTS ========== -->
+  <div class="results-column">
+    <div class="sort-row">
+      <span>Sort By:</span>
+      <select class="sort-select" name="sort" onchange="this.form.submit()">
+        <option value="recommended" <?php if ($sort=='recommended') echo 'selected'; ?>>
+          Recommended
+        </option>
+        <option value="price_asc" <?php if ($sort=='price_asc') echo 'selected'; ?>>
+          Price: Low to High
+        </option>
+        <option value="price_desc" <?php if ($sort=='price_desc') echo 'selected'; ?>>
+          Price: High to Low
+        </option>
+        <option value="rating" <?php if ($sort=='rating') echo 'selected'; ?>>
+          Rating
+        </option>
+      </select>
+    </div>
+
+    <?php if ($selected_city === ''): ?>
+      <p>Please select a city to see available hotels.</p>
+    <?php else: ?>
+      <h3>Hotels in "<?php echo htmlspecialchars($selected_city); ?>"</h3><br>
+
+      <?php if (empty($hotels)): ?>
+        <p>No hotels found with these filters.</p>
+      <?php else: ?>
+        <?php foreach ($hotels as $hotel): ?>
+          <div class="hotel-card">
+            <img
+              src="images/hotel.png"
+              alt="Hotel"
+              class="hotel-image"
+            />
+            <div class="hotel-info">
+              <div>
+                <div class="hotel-title">
+                  <?php echo htmlspecialchars($hotel['hotel_name']); ?>
+                </div>
+                <div class="hotel-price">
+                  FROM <?php echo number_format($hotel['base_price'], 2); ?>$ /NIGHT
+                </div>
+                <div class="hotel-stars">
+                  Rating: <?php echo htmlspecialchars($hotel['rating']); ?>
+                </div>
+              </div>
+
+              <div class="hotel-bottom-row">
+                <a
+                  href="info.php?hotel_id=<?php echo (int)$hotel['hotel_id']; ?>"
+                  class="more-info-btn"
+                >
+                  Show more info
+                </a>
+              </div>
+            </div>
+          </div>
+        <?php endforeach; ?>
+      <?php endif; ?>
+    <?php endif; ?>
+  </div>
+</div> <!-- end .content -->
+ </form>
+  </div>
   <?php include 'footer.html'; ?>
 
   <!-- JavaScript بسيط لفتح/إغلاق الليستات -->
@@ -508,7 +529,17 @@ if (!empty($_GET['city'])) {
           }
         });
       });
+   
+    document.querySelectorAll(".feature-button").forEach(function (btn) {
+    const checkbox = btn.querySelector("input");
+    if (checkbox.checked) btn.classList.add("active");
+
+    btn.addEventListener("click", function () {
+      checkbox.checked = !checkbox.checked;
+      btn.classList.toggle("active");
     });
+  });
+});
   </script>
 </body>
 </html>
