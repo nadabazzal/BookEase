@@ -3,15 +3,10 @@ session_start();
 
 
 // 2. Connect to database
-$conn = new mysqli('localhost', 'root', '', 'hetels');
-if ($conn->connect_error) {
-    die("Connection failed: " . $conn->connect_error);
-}
+$conn = new mysqli('localhost', 'root', '', 'hotel_management_system');
 
 // 3. Get room_id from URL, e.g. booking.php?room_id=3
-if (!isset($_GET['room_id'])) {
-    die("No room selected.");
-}
+
 
 $room_id = (int) $_GET['room_id'];
 

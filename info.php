@@ -1,24 +1,29 @@
 <?php
 session_start();
-$conn=mysqli_connect("localhost","root","","hotel_management_system");
-if( !$conn){
-  die("Connection failed: ". mysqli_connect_error());
+$conn = mysqli_connect("localhost", "root", "", "hotel_management_system");
+if (!$conn) {
+    die("Connection failed: " . mysqli_connect_error());
 }
-// 2) READ hotel_id & city FROM URL
+
+/* ------------------------------------------------------
+   1) READ hotel_id FROM GET
+------------------------------------------------------ */
 if (!isset($_GET['hotel_id'])) {
     die("No hotel selected.");
 }
 
-$hotel_id = (int) $_GET['hotel_id'];          // from link
-$selected_city = isset($_GET['city']) ? $_GET['city'] : '';
+$hotel_id = (int) $_GET['hotel_id'];
 
-// 3) GET HOTEL INFO
-$sqlHotel = "SELECT hotel_id, hotel_name, description, rating,
-                    country, city, base_price
-             FROM hotels
-             WHERE hotel_id = $hotel_id
-               AND status = 'approved'";
-
+/* ------------------------------------------------------
+   2) GET HOTEL INFO
+------------------------------------------------------ */
+$sqlHotel = "
+    SELECT hotel_id, hotel_name, description, rating,
+           country, city, base_price
+    FROM hotels
+    WHERE hotel_id = $hotel_id
+      AND status = 'approved'
+";
 $resultHotel = mysqli_query($conn, $sqlHotel);
 
 if (!$resultHotel || mysqli_num_rows($resultHotel) == 0) {
@@ -26,79 +31,81 @@ if (!$resultHotel || mysqli_num_rows($resultHotel) == 0) {
 }
 
 $hotel = mysqli_fetch_assoc($resultHotel);
-// 4-bis) GET ROOM FEATURES FOR ALL ROOMS OF THIS HOTEL
-$roomFeatures = []; // room_id => [feature1, feature2, ...]
 
+/* ------------------------------------------------------
+   3) GET ROOM FEATURES PER ROOM
+------------------------------------------------------ */
+$roomFeatures = [];  // room_id => features array
 $sqlRoomFeat = "
     SELECT rfm.room_id, rf.featurer_name
-    FROM rooms_feature_map AS rfm
-    JOIN roomsfeatures AS rf ON rf.featurer_id = rfm.featurer_id
-    JOIN rooms AS r ON r.room_id = rfm.room_id
+    FROM rooms_feature_map rfm
+    JOIN roomsfeatures rf ON rf.featurer_id = rfm.featurer_id
+    JOIN rooms r ON r.room_id = rfm.room_id
     WHERE r.hotel_id = $hotel_id
 ";
 
 $resultRoomFeat = mysqli_query($conn, $sqlRoomFeat);
 
-if ($resultRoomFeat && mysqli_num_rows($resultRoomFeat) > 0) {
-    while ($row = mysqli_fetch_assoc($resultRoomFeat)) {
-        $rid = $row['room_id'];
-        if (!isset($roomFeatures[$rid])) {
-            $roomFeatures[$rid] = [];
-        }
-        $roomFeatures[$rid][] = $row['featurer_name'];
+while ($row = mysqli_fetch_assoc($resultRoomFeat)) {
+    $rid = $row['room_id'];
+    if (!isset($roomFeatures[$rid])) {
+        $roomFeatures[$rid] = [];
     }
-  }
-// 5) GET ROOMS FOR THIS HOTEL
-$sqlRooms = "SELECT room_id, room_type, price, capacity, status
-             FROM rooms
-             WHERE hotel_id = $hotel_id
-             ORDER BY price ASC";
-
-$resultRooms = mysqli_query($conn, $sqlRooms);
-$rooms = [];
-if ($resultRooms && mysqli_num_rows($resultRooms) > 0) {
-    while ($row = mysqli_fetch_assoc($resultRooms)) {
-        $rooms[] = $row;
-    }
+    $roomFeatures[$rid][] = $row['featurer_name'];
 }
 
-// 6) GET HOTEL FEATURES (AMENITIES)
-$sqlFeatures = "SELECT hf.feature_name
-                FROM hotelsfeatures hf
-                JOIN hotels_features_map m
-                    ON m.feature_id = hf.feature_id
-                WHERE m.hotel_id = $hotel_id";
+$sqlRooms = "
+    SELECT 
+        r.room_id,
+        r.room_type,
+        r.price,
+        r.capacity,
+        MIN(ri.image) AS image      -- pick one image per room
+    FROM rooms r
+    LEFT JOIN room_images ri ON ri.room_id = r.room_id
+    WHERE r.hotel_id = $hotel_id
+    GROUP BY r.room_id, r.room_type, r.price, r.capacity
+    ORDER BY r.price ASC
+";
 
+
+$resultRooms = mysqli_query($conn, $sqlRooms);
+
+$rooms = [];
+while ($row = mysqli_fetch_assoc($resultRooms)) {
+    $rooms[] = $row;
+}
+
+$firstRoom = $rooms[0] ?? null;
+
+/* ------------------------------------------------------
+   5) GET HOTEL AMENITIES
+------------------------------------------------------ */
+$sqlFeatures = "
+    SELECT hf.feature_name
+    FROM hotelsfeatures hf
+    JOIN hotels_features_map m ON m.feature_id = hf.feature_id
+    WHERE m.hotel_id = $hotel_id
+";
 $resultFeat = mysqli_query($conn, $sqlFeatures);
+
 $features = [];
-if ($resultFeat && mysqli_num_rows($resultFeat) > 0) {
-    while ($row = mysqli_fetch_assoc($resultFeat)) {
-        $features[] = $row['feature_name'];
-    }
-  }
-
-
+while ($row = mysqli_fetch_assoc($resultFeat)) {
+    $features[] = $row['feature_name'];
+}
 ?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Le Gray Beirut</title>
+<meta charset="UTF-8">
+<title><?php echo htmlspecialchars($hotel['hotel_name']); ?></title>
 
-  <!-- Google Font -->
-  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 
-  <!-- Font Awesome (icons in footer & amenities) -->
-  <link
-    rel="stylesheet"
-    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
-    integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA=="
-    crossorigin="anonymous"
-    referrerpolicy="no-referrer"
-  />
+<style>
 
-  <style>
     :root {
       --bg-main: #214a5c;
       --bg-dark: #153649;
@@ -247,16 +254,51 @@ if ($resultFeat && mysqli_num_rows($resultFeat) > 0) {
       font-weight: 600;
     }
 
-   
-.btn-primary {
-    padding: 10px 20px;
-    background:  #ffffff;
-    color: #0b2d39;
-    text-decoration: none;
-    border-radius: 10px;
+  .btn-primary {
+    padding: 12px 26px;
+      background: var(--bg-dark);
+
+    color: white;
+    border-radius: 25px;         /* Fully rounded */
+    border: none;
     font-weight: 600;
+    font-size: 15px;
+    cursor: pointer;
+    transition: 0.25s;
+    display: inline-block;
+    text-decoration: none;
+}
+.btn-primary:hover {
+    background: #0d8af0;         /* Lighter blue */
+    transform: translateY(-2px); /* Floating effect */
+}
 
+.btn-primary:active {
+    transform: scale(0.96);      /* Tap animation */
+}
+.btn-secondary {
+    padding: 10px 22px;
+    background: transparent;
+    color: #ffffff;
+    border-radius: 25px;
+    border: 1px solid #ffffff;
+    font-weight: 500;
+    font-size: 14px;
+    cursor: pointer;
+    transition: 0.25s;
+    display: inline-block;
+    text-decoration: none;
+    margin-left: 10px;
+}
 
+.btn-secondary:hover {
+    background: #0d8af0;
+    border-color: #0d8af0;
+    transform: translateY(-2px);
+}
+
+.btn-secondary:active {
+    transform: scale(0.96);
 }
 
 
@@ -382,227 +424,196 @@ if ($resultFeat && mysqli_num_rows($resultFeat) > 0) {
       line-height: 1.8;
       max-width: 700px;
     }
-
-   
-  </style>
+</style>
 </head>
 
 <body>
-   <?php include 'navbar.html'; ?>
-    <br><br><br><br>
 
-  <!-- HERO -->
-  <section class="hero-section">
-    <img src="images/hotel.png" alt="Hotel" class="hero-img" />
+<?php include 'navbar.html'; ?>
+
+<!-- HERO -->
+<section class="hero-section">
+    <img src="images/hotel.png" class="hero-img">
     <div class="hero-overlay">
-      <h1 class="hero-title"><?php echo htmlspecialchars($hotel['hotel_name']); ?></h1>
+        <h1 class="hero-title"><?php echo htmlspecialchars($hotel['hotel_name']); ?></h1>
     </div>
-  </section>
+</section>
 
-  <!-- TABS -->
-  <div class="tabs">
+<!-- TABS -->
+<div class="tabs">
     <a href="#details">Details</a>
-    <a href="#rooms">Rooms and prices</a>
-    <a href="#amenities">Hotel Amenities</a>
-    <a href="#about">About the hotel</a>
-  </div>
+    <a href="#rooms">Rooms</a>
+    <a href="#amenities">Amenities</a>
+    <a href="#about">About</a>
+</div>
 
-  <main>
-    <!-- DETAILS -->
-    <section id="details">
-      <div class="section-header">DETAILS</div>
+<main>
 
-      <div class="details-box">
+<!-- DETAILS -->
+<section id="details">
+    <div class="section-header">DETAILS</div>
+
+    <div class="details-box">
         <div class="details-left">
-          <div class="detail-item">
-            📍 <span><?php echo htmlspecialchars($hotel['city'] . ', ' . $hotel['country']); ?></span>
-          </div>
+            <div class="detail-item">
+                📍 <?php echo htmlspecialchars($hotel['city'] . ", " . $hotel['country']); ?>
+            </div>
 
-          <div class="detail-item rating-pill"><?php echo htmlspecialchars($hotel['rating']); ?></div>
-        <a href="booking.php?room_id=<?php echo $room['room_id']; ?>" class="btn-primary">Book Now</a><br>
-      </div>
-    </section>
+          <div class="detail-item rating-pill">
+    <?php echo htmlspecialchars($hotel['rating']); ?>
+</div>
 
-    <hr class="section-divider" />
- <!-- ROOMS -->
-    <section id="rooms">
-      <div class="section-header">ROOMS AND PRICES</div>
-      <?php
-    // if we have at least one room, use the first as ROOM 1
-    $firstRoom = !empty($rooms) ? $rooms[0] : null;
-  ?>
+<?php if ($firstRoom): ?>
+    <form action="booking.php" method="get" style="display:inline;">
+        <input type="hidden" name="room_id" value="<?php echo (int)$firstRoom['room_id']; ?>">
+        <button type="submit" class="btn-primary">Book Now</button>
+    </form>
+<?php endif; ?>
+<form method="POST" action="favorites.php" style="display:inline;">
+    <input type="hidden" name="hotel_id" value="<?php echo (int)$hotel_id; ?>">
+    <button type="submit" class="btn-secondary">
+        <i class="fa-regular fa-heart"></i> Add to Favorites
+    </button>
+</form>
+        </div>
+    </div>
+</section>
 
-      <!-- ROOM 1 -->
-     <?php if ($firstRoom): ?>
-      <div class="rooms-row">
+<hr class="section-divider">
+
+<!-- ROOMS -->
+<section id="rooms">
+    <div class="section-header">ROOMS AND PRICES</div>
+
+    <?php if ($firstRoom): ?>
+    <!-- FIRST ROOM -->
+    <div class="rooms-row">
         <div class="room-photo-card">
-          <img src="images/room.jpg" alt="">
+          <div class="room-photo-card">
+    <img src="<?php echo htmlspecialchars($firstRoom['image']); ?>" 
+         alt="Room Image">
+</div>
+
         </div>
 
         <div class="room-details-card">
-          <div>
-            <h3 class="room-title"><?php echo htmlspecialchars($rooms[0]['room_type']); ?></h3>
-            <p class="room-meta"><?php echo htmlspecialchars($rooms[0]['capacity'] . ' guests'); ?></p>
+            <h3 class="room-title"><?php echo $firstRoom['room_type']; ?></h3>
+            <p class="room-meta"><?php echo $firstRoom['capacity']; ?> guests</p>
 
             <div class="room-list">
-              <?php
-  $featList = isset($roomFeatures[$room['room_id']])
-      ? $roomFeatures[$room['room_id']]
-      : [];
-?>
-<div class="room-list">
-  <?php if (!empty($featList)): ?>
-    <?php foreach ($featList as $feat): ?>
-      <span>✓ <?php echo htmlspecialchars($feat); ?></span>
-    <?php endforeach; ?>
-  <?php else: ?>
-    <span>No features listed</span>
-  <?php endif; ?>
-</div>
-
-            </div>
-          </div>
-
-          <div class="room-bottom">
-            <span><i class="fa-solid fa-user-group"> <?php echo (int)$firstRoom['capacity']; ?></span>
-            <span class="room-price"> <?php echo number_format($firstRoom['price'], 2); ?>$ US / night</span>
-          </div>
-        </div>
-      </div>
-<?php else: ?>
-    <p>No rooms available for this hotel.</p>
-  <?php endif; ?>
-   <?php if (!empty($rooms) && count($rooms) > 1): ?>
-      <!-- EXTRA ROOMS — HIDDEN -->
-      <div id="extra-rooms" class="hidden">
-        <?php
-        // start from index 1 (second room) for "extra" rooms
-        for ($i = 1; $i < count($rooms); $i++):
-          $room = $rooms[$i];
-          $featList = isset($roomFeatures[$room['room_id']])
-              ? $roomFeatures[$room['room_id']]
-              : [];
-      ?>
-   <div class="rooms-row">
-          <div class="room-photo-card">
-            <img src="images/room.jpg" alt="">
-          </div>
-
-          <div class="room-details-card">
-            <div>
-              <h3 class="room-title">
-                <?php echo htmlspecialchars($room['room_type']); ?>
-              </h3>
-              <p class="room-meta">
-                <?php echo htmlspecialchars($room['capacity'] . ' guests'); ?>
-              </p>
-
-              <div class="room-list">
-                <?php if (!empty($featList)): ?>
-                  <?php foreach ($featList as $feat): ?>
-                    <span>✓ <?php echo htmlspecialchars($feat); ?></span>
-                  <?php endforeach; ?>
-                <?php else: ?>
-                  <span>No features listed</span>
-                <?php endif; ?>
-              </div>
+            <?php 
+            $featList = $roomFeatures[$firstRoom['room_id']] ?? [];
+            if (!empty($featList)):
+                foreach ($featList as $f):
+            ?>
+                <span>✓ <?php echo htmlspecialchars($f); ?></span>
+            <?php endforeach; else: ?>
+                <span>No features listed</span>
+            <?php endif; ?>
             </div>
 
             <div class="room-bottom">
-              <span>
-                <i class="fa-solid fa-user-group"></i>
-                <?php echo (int)$room['capacity']; ?>
-              </span>
-              <span class="room-price">
-                <?php echo number_format($room['price'], 2); ?>$ US / night
-              </span>
+                <span><i class="fa-solid fa-user-group"></i> 
+                    <?php echo $firstRoom['capacity']; ?>
+                </span>
+                <span class="room-price">
+                    <?php echo number_format($firstRoom['price'], 2); ?>$ / night
+                </span>
             </div>
-          </div>
         </div>
-      <?php endfor; ?>
+    </div>
+    <?php endif; ?>
+
+    <!-- EXTRA ROOMS -->
+    <?php if (count($rooms) > 1): ?>
+    <div id="extra-rooms" class="hidden">
+        <?php for ($i = 1; $i < count($rooms); $i++):
+            $room = $rooms[$i];
+            $featList = $roomFeatures[$room['room_id']] ?? [];
+        ?>
+        <div class="rooms-row">
+            <div class="room-photo-card">
+              <div class="room-photo-card">
+    <img src="<?php echo htmlspecialchars($room['image']); ?>" 
+         alt="Room Image">
+</div>
+
+            </div>
+
+            <div class="room-details-card">
+                <h3 class="room-title"><?php echo $room['room_type']; ?></h3>
+                <p class="room-meta"><?php echo $room['capacity']; ?> guests</p>
+
+                <div class="room-list">
+                <?php if (!empty($featList)): ?>
+                    <?php foreach ($featList as $f): ?>
+                        <span>✓ <?php echo htmlspecialchars($f); ?></span>
+                    <?php endforeach; ?>
+                <?php else: ?>
+                    <span>No features listed</span>
+                <?php endif; ?>
+                </div>
+
+                <div class="room-bottom">
+                    <span><i class="fa-solid fa-user-group"></i> <?php echo $room['capacity']; ?></span>
+                    <span class="room-price"><?php echo number_format($room['price'],2); ?>$ / night</span>
+                </div>
+            </div>
+        </div>
+        <?php endfor; ?>
     </div>
 
-       
-      <!-- BUTTON -->
-      <button id="show-more-rooms" class="rooms-more">Show more rooms</button>
-  <?php endif; ?>
-    </section>
+    <button id="show-more-rooms" class="rooms-more">Show more rooms</button>
+    <?php endif; ?>
 
-  </main>
+</section>
 
-  <script>
-    document.addEventListener("DOMContentLoaded", () => {
-      const btn = document.getElementById("show-more-rooms");
-      const extra = document.getElementById("extra-rooms");
+<hr class="section-divider">
 
-      btn.addEventListener("click", () => {
-        if (extra.classList.contains("hidden")) {
-          extra.classList.remove("hidden");
-          btn.textContent = "Show less rooms";
-        } else {
-          extra.classList.add("hidden");
-          btn.textContent = "Show more rooms";
-        }
-      });
-    });
-  </script>
-   </section>
-     <hr class="section-divider" />
-<!-- HOTEL AMENITIES -->
-    <section id="amenities">
-      <div class="section-header">Hotel Amenities</div>
+<!-- AMENITIES -->
+<section id="amenities">
+    <div class="section-header">AMENITIES</div>
 
-      <div class="amenities-card">
+    <div class="amenities-card">
+        <?php foreach ($features as $f): ?>
         <div class="amenity">
-          <i class="fa-solid fa-person-swimming"></i>
-          <span>Swimming pool</span>
+            <i class="fa-solid fa-check"></i>
+            <span><?php echo htmlspecialchars($f); ?></span>
         </div>
-        <div class="amenity">
-          <i class="fa-solid fa-wifi"></i>
-          <span>Wifi</span>
-        </div>
-        <div class="amenity">
-          <i class="fa-solid fa-dumbbell"></i>
-          <span>Gym</span>
-        </div>
-        <div class="amenity">
-          <i class="fa-solid fa-square-parking"></i>
-          <span>Free parking</span>
-        </div>
-        <div class="amenity">
-          <i class="fa-solid fa-utensils"></i>
-          <span>Restaurant</span>
-        </div>
-        <div class="amenity">
-          <i class="fa-regular fa-clock"></i>
-          <span>24/7 Reception</span>
-        </div>
-      </div>
-    </section>
+        <?php endforeach; ?>
+    </div>
+</section>
 
-    <hr class="section-divider" />
+<hr class="section-divider">
 
+<!-- ABOUT -->
+<section id="about">
+    <div class="section-header">ABOUT</div>
 
-    <!-- ABOUT -->
-    <section id="about">
-      <div class="section-header">About the Hotel</div>
+    <div class="about-box">
+        <?php echo nl2br(htmlspecialchars($hotel['description'])); ?>
+    </div>
+</section>
 
-      <div class="about-box">
-        Blue Wave Hotel combines elegance and comfort. Located on the Beirut coast,
-        we offer spacious rooms, excellent dining, and top-tier hospitality.
-      </div>
-    </section>
-  </main>
+</main>
 
 <?php include 'footer.html'; ?>
 
-  <script>
-    const toggle = document.getElementById("menu-toggle");
-    const links = document.getElementById("nav-links");
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+    const btn = document.getElementById("show-more-rooms");
+    const extra = document.getElementById("extra-rooms");
 
-    toggle.addEventListener("click", () => {
-      links.classList.toggle("active");
-    });
-  </script>
+    if (btn && extra) {
+        btn.addEventListener("click", () => {
+            extra.classList.toggle("hidden");
+            btn.textContent = extra.classList.contains("hidden")
+                ? "Show more rooms"
+                : "Show less rooms";
+        });
+    }
+});
+</script>
+
 </body>
 </html>
