@@ -36,7 +36,6 @@ $hotel = mysqli_fetch_assoc($resultHotel);
    3) GET ROOM FEATURES PER ROOM
 ------------------------------------------------------ */
 $roomFeatures = [];  // room_id => features array
-
 $sqlRoomFeat = "
     SELECT rfm.room_id, rf.featurer_name
     FROM rooms_feature_map rfm
@@ -44,6 +43,7 @@ $sqlRoomFeat = "
     JOIN rooms r ON r.room_id = rfm.room_id
     WHERE r.hotel_id = $hotel_id
 ";
+
 $resultRoomFeat = mysqli_query($conn, $sqlRoomFeat);
 
 while ($row = mysqli_fetch_assoc($resultRoomFeat)) {
@@ -54,15 +54,21 @@ while ($row = mysqli_fetch_assoc($resultRoomFeat)) {
     $roomFeatures[$rid][] = $row['featurer_name'];
 }
 
-/* ------------------------------------------------------
-   4) GET ALL ROOMS
------------------------------------------------------- */
 $sqlRooms = "
-    SELECT room_id, room_type, price, capacity
-    FROM rooms
-    WHERE hotel_id = $hotel_id
-    ORDER BY price ASC
+    SELECT 
+        r.room_id,
+        r.room_type,
+        r.price,
+        r.capacity,
+        MIN(ri.image) AS image      -- pick one image per room
+    FROM rooms r
+    LEFT JOIN room_images ri ON ri.room_id = r.room_id
+    WHERE r.hotel_id = $hotel_id
+    GROUP BY r.room_id, r.room_type, r.price, r.capacity
+    ORDER BY r.price ASC
 ";
+
+
 $resultRooms = mysqli_query($conn, $sqlRooms);
 
 $rooms = [];
@@ -270,6 +276,31 @@ while ($row = mysqli_fetch_assoc($resultFeat)) {
 .btn-primary:active {
     transform: scale(0.96);      /* Tap animation */
 }
+.btn-secondary {
+    padding: 10px 22px;
+    background: transparent;
+    color: #ffffff;
+    border-radius: 25px;
+    border: 1px solid #ffffff;
+    font-weight: 500;
+    font-size: 14px;
+    cursor: pointer;
+    transition: 0.25s;
+    display: inline-block;
+    text-decoration: none;
+    margin-left: 10px;
+}
+
+.btn-secondary:hover {
+    background: #0d8af0;
+    border-color: #0d8af0;
+    transform: translateY(-2px);
+}
+
+.btn-secondary:active {
+    transform: scale(0.96);
+}
+
 
     /* ---------- ROOMS & PRICES ---------- */
     .rooms-row {
@@ -438,6 +469,12 @@ while ($row = mysqli_fetch_assoc($resultFeat)) {
         <button type="submit" class="btn-primary">Book Now</button>
     </form>
 <?php endif; ?>
+<form method="POST" action="favorites.php" style="display:inline;">
+    <input type="hidden" name="hotel_id" value="<?php echo (int)$hotel_id; ?>">
+    <button type="submit" class="btn-secondary">
+        <i class="fa-regular fa-heart"></i> Add to Favorites
+    </button>
+</form>
         </div>
     </div>
 </section>
@@ -452,7 +489,11 @@ while ($row = mysqli_fetch_assoc($resultFeat)) {
     <!-- FIRST ROOM -->
     <div class="rooms-row">
         <div class="room-photo-card">
-            <img src="images/room.jpg">
+          <div class="room-photo-card">
+    <img src="<?php echo htmlspecialchars($firstRoom['image']); ?>" 
+         alt="Room Image">
+</div>
+
         </div>
 
         <div class="room-details-card">
@@ -492,7 +533,11 @@ while ($row = mysqli_fetch_assoc($resultFeat)) {
         ?>
         <div class="rooms-row">
             <div class="room-photo-card">
-                <img src="images/room.jpg">
+              <div class="room-photo-card">
+    <img src="<?php echo htmlspecialchars($room['image']); ?>" 
+         alt="Room Image">
+</div>
+
             </div>
 
             <div class="room-details-card">
