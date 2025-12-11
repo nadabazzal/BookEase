@@ -7,7 +7,9 @@ if (!$conn) {
     die("Connection failed: " . mysqli_connect_error());
 }
 
-// 2) GET DISTINCT CITIES FOR SELECT
+/* ==========================
+   GET DISTINCT CITIES
+   ========================== */
 $cities = [];
 $sqlCities = "SELECT DISTINCT city FROM hotels WHERE status = 'approved' ORDER BY city ASC";
 $resultCities = mysqli_query($conn, $sqlCities);
@@ -17,7 +19,10 @@ if ($resultCities && mysqli_num_rows($resultCities) > 0) {
         $cities[] = $row['city'];
     }
 }
-// HOTEL FEATURES
+
+/* ==========================
+   HOTEL FEATURES
+   ========================== */
 $hotelFeatures = [];
 $sqlHF = "SELECT feature_id, feature_name FROM hotelsfeatures ORDER BY feature_name ASC";
 $resultHF = mysqli_query($conn, $sqlHF);
@@ -25,7 +30,9 @@ while ($row = mysqli_fetch_assoc($resultHF)) {
     $hotelFeatures[] = $row;
 }
 
-// ROOM FEATURES
+/* ==========================
+   ROOM FEATURES
+   ========================== */
 $roomFeatures = [];
 $sqlRF = "SELECT featurer_id, featurer_name FROM roomsfeatures ORDER BY featurer_name ASC";
 $resultRF = mysqli_query($conn, $sqlRF);
@@ -33,32 +40,39 @@ while ($row = mysqli_fetch_assoc($resultRF)) {
     $roomFeatures[] = $row;
 }
 
-$hotels = [];
-// 3) HANDLE SELECTED CITY AND LOAD HOTELS
-$selected_city      = isset($_GET['city']) ? $_GET['city'] : '';
+/* ==========================
+   FILTER VARIABLES
+   ========================== */
+$hotels            = [];
+$selected_city     = isset($_POST['city']) ? $_POST['city'] : '';
+$selectedHotelFeat = isset($_POST['hotel_features']) ? $_POST['hotel_features'] : [];
+$selectedRoomFeat  = isset($_POST['room_features']) ? $_POST['room_features'] : [];
+$sort              = isset($_POST['sort']) ? $_POST['sort'] : 'recommended';
 
-
-if (!empty($_POST['city'])) {
-    $selected_city = $_POST['city'];
+/* ==========================
+   BUILD MAIN QUERY
+   ========================== */
+if ($selected_city !== '') {
     $city_safe = mysqli_real_escape_string($conn, $selected_city);
 
-    $sqlHotels = "
-        SELECT hotel_id, hotel_name, description, rating, city, country, base_price
-        FROM hotels
-        WHERE city = '$city_safe'
-          AND status = 'approved'
-       
+    // Use ONE query variable: $sql
+    // Use alias h for hotels
+    $sql = "
+        SELECT 
+            h.hotel_id, 
+            h.hotel_name, 
+            h.description, 
+            h.rating, 
+            h.city, 
+            h.country, 
+            h.base_price
+        FROM hotels h
+        WHERE h.city = '$city_safe'
+          AND h.status = 'approved'
     ";
-//run
 
-    $resultHotels = mysqli_query($conn, $sqlHotels);
-    if ($resultHotels && mysqli_num_rows($resultHotels) > 0) {
-        while ($row = mysqli_fetch_assoc($resultHotels)) {
-            $hotels[] = $row;
-        }
-    }
-    $selectedHotelFeat  = isset($_GET['hotel_features']) ? $_GET['hotel_features'] : [];
-if (!empty($selectedHotelFeat)) {
+    // HOTEL FEATURES FILTER
+    if (!empty($selectedHotelFeat)) {
         $hfIds = array_map('intval', $selectedHotelFeat);
         $inHF = implode(',', $hfIds);
 
@@ -72,8 +86,8 @@ if (!empty($selectedHotelFeat)) {
           )
         ";
     }
-$selectedRoomFeat   = isset($_GET['room_features']) ? $_GET['room_features'] : [];
 
+    // ROOM FEATURES FILTER
     if (!empty($selectedRoomFeat)) {
         $rfIds = array_map('intval', $selectedRoomFeat);
         $inRF = implode(',', $rfIds);
@@ -89,9 +103,9 @@ $selectedRoomFeat   = isset($_GET['room_features']) ? $_GET['room_features'] : [
           )
         ";
     }
-$sort= isset($_GET['sort']) ? $_GET['sort'] : 'recommended';
 
- switch ($sort) {
+    // SORTING
+    switch ($sort) {
         case 'price_asc':
             $sql .= " ORDER BY h.base_price ASC";
             break;
@@ -103,13 +117,19 @@ $sort= isset($_GET['sort']) ? $_GET['sort'] : 'recommended';
             break;
         case 'recommended':
         default:
-            // Recommended: best rating, then cheaper price
+            // best rating, then cheaper price
             $sql .= " ORDER BY h.rating DESC, h.base_price ASC";
             $sort = 'recommended';
             break;
     }
 
-
+    // RUN QUERY
+    $resultHotels = mysqli_query($conn, $sql);
+    if ($resultHotels && mysqli_num_rows($resultHotels) > 0) {
+        while ($row = mysqli_fetch_assoc($resultHotels)) {
+            $hotels[] = $row;
+        }
+    }
 }
 ?>
 <!DOCTYPE html> 
@@ -194,7 +214,8 @@ $sort= isset($_GET['sort']) ? $_GET['sort'] : 'recommended';
     }
 
     .filters-column {
-      width: 280px;
+      width: 300px;
+      height:300px;
       flex-shrink: 0;
       display: flex;
       flex-direction: column;
@@ -529,16 +550,7 @@ $sort= isset($_GET['sort']) ? $_GET['sort'] : 'recommended';
           }
         });
       });
-   
-    document.querySelectorAll(".feature-button").forEach(function (btn) {
-    const checkbox = btn.querySelector("input");
-    if (checkbox.checked) btn.classList.add("active");
-
-    btn.addEventListener("click", function () {
-      checkbox.checked = !checkbox.checked;
-      btn.classList.toggle("active");
-    });
-  });
+      
 });
   </script>
 </body>
