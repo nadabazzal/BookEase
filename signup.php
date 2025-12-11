@@ -72,7 +72,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                        VALUES ('$email_safe', '$password_hashed', 'user')";
 
         if (mysqli_query($conn, $sql_insert)) {
-            $success_msg = "Account created successfully! You can now log in.";
+            $success_msg = "Account created successfully! ";
             $email = ""; 
             $errors =[];  
                  
