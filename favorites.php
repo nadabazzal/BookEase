@@ -15,25 +15,48 @@ if (!$conn) {
     die("Connection failed: " . mysqli_connect_error());
 }
 
-// If this page also handles adding favorites (optional)
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['hotel_id'])) { //press the button
+/* ==========================
+   1) ADD TO FAVORITES
+   ========================== */
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['hotel_id'])) {
+
     $hotel_id = (int) $_POST['hotel_id'];
 
-    // Check duplicate
-    $check_sql = "SELECT id FROM favorites WHERE user_id = $user_id AND hotel_id = $hotel_id";
+    $check_sql = "SELECT fav_id FROM favorites WHERE user_id = $user_id AND hotel_id = $hotel_id";
     $check_res = mysqli_query($conn, $check_sql);
 
     if ($check_res && mysqli_num_rows($check_res) == 0) {
+
         $insert_sql = "INSERT INTO favorites (user_id, hotel_id) VALUES ($user_id, $hotel_id)";
-        if (mysqli_query($conn, $insert_sql)) {
-            $_SESSION['fav_success'] = "Hotel added to favorites successfully ✅";
-        } else {
-            $_SESSION['fav_error'] = "Error adding favorite: " . mysqli_error($conn);
-        }
+        mysqli_query($conn, $insert_sql);
+
+        echo "<script>alert('Hotel added to favorites successfully ✅');</script>";
+
     } else {
-        $_SESSION['fav_success'] = "This hotel is already in your favorites ⭐";
+        echo "<script>alert('This hotel is already in your favorites ⭐');</script>";
     }
 }
+
+
+/* ==========================
+   2) REMOVE FROM FAVORITES
+   ========================== */
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['remove_hotel_id'])) {
+
+    $remove_hotel_id = (int) $_POST['remove_hotel_id'];
+
+    $del_sql = "DELETE FROM favorites 
+                WHERE user_id = $user_id AND hotel_id = $remove_hotel_id LIMIT 1";
+
+    mysqli_query($conn, $del_sql);
+
+    echo "<script>
+            alert('Hotel removed from favorites ❌');
+            window.location.href = 'favorites.php';
+          </script>";
+    exit();
+}
+
 
 // Get favorites with hotel info (including image)
 $sql = "
@@ -57,27 +80,37 @@ $favorites = mysqli_query($conn, $sql);
     <link rel="stylesheet" href="favorites.css">
 
     <style>
-        .flash-message { text-align:center; margin-top:80px; font-weight:700; }
-        .flash-success { color:#0a7e2f; }
-        .flash-error { color:#b00020; }
+        
+  .favorite-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0;
+    margin-left: 100px; 
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.favorite-btn i {
+    font-size: 22px;
+    color: #ffffff;
+    transition: 0.3s ease;
+}
+
+.favorite-btn:hover i {
+    background-color: #295066; 
+    color: #999;
+}
+
+
     </style>
 </head>
 <body>
 
 <?php include 'navbar.html'; ?>
 
-<!-- Flash messages -->
-<?php if (isset($_SESSION['fav_success'])): ?>
-    <div class="flash-message flash-success">
-        <?php echo $_SESSION['fav_success']; unset($_SESSION['fav_success']); ?>
-    </div>
-<?php endif; ?>
 
-<?php if (isset($_SESSION['fav_error'])): ?>
-    <div class="flash-message flash-error">
-        <?php echo $_SESSION['fav_error']; unset($_SESSION['fav_error']); ?>
-    </div>
-<?php endif; ?>
 
 <h2 style="text-align:center; margin-top:20px;">My Favorite Hotels</h2>
 
@@ -99,10 +132,23 @@ if ($favorites && mysqli_num_rows($favorites) > 0):
                 <p class="price">From $<?php echo htmlspecialchars($row['base_price']); ?>/night</p>
             <?php endif; ?>
 
+            <!-- Go to hotel details -->
             <button class="more-btn"
                 onclick="window.location.href='hotelInfo.php?hotel_id=<?php echo $row['hotel_id']; ?>';">
                 Show more info
             </button>
+
+            <!-- Remove from favorites -->
+           <form method="POST" style="display:inline-block; margin-left:10px;">
+    <input type="hidden" name="remove_hotel_id" value="<?php echo (int)$row['hotel_id']; ?>">
+    <button class="favorite-btn" type="submit">
+        <i class="fa-solid fa-bookmark"></i>
+    </button>
+</form>
+
+
+                
+            </form>
         </div>
     </div>
 <?php
