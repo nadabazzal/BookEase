@@ -1,3 +1,47 @@
+<?php
+session_start();
+
+// 1) CONNECT TO DATABASE
+$conn = mysqli_connect('localhost', 'root', '', 'hotel_management_system');
+if (!$conn) {
+    die("Connection failed: " . mysqli_connect_error());
+}
+
+// 2) GET DISTINCT CITIES FOR SELECT
+$cities = [];
+$sqlCities = "SELECT DISTINCT city FROM hotels WHERE status = 'approved' ORDER BY city ASC";
+$resultCities = mysqli_query($conn, $sqlCities);
+
+if ($resultCities && mysqli_num_rows($resultCities) > 0) {
+    while ($row = mysqli_fetch_assoc($resultCities)) {
+        $cities[] = $row['city'];
+    }
+}
+
+// 3) HANDLE SELECTED CITY AND LOAD HOTELS
+$selected_city = '';
+$hotels = [];
+
+if (!empty($_GET['city'])) {
+    $selected_city = $_GET['city'];
+    $city_safe = mysqli_real_escape_string($conn, $selected_city);
+
+    $sqlHotels = "
+        SELECT hotel_id, hotel_name, description, rating, city, country, base_price
+        FROM hotels
+        WHERE city = '$city_safe'
+          AND status = 'approved'
+        ORDER BY base_price ASC
+    ";
+
+    $resultHotels = mysqli_query($conn, $sqlHotels);
+    if ($resultHotels && mysqli_num_rows($resultHotels) > 0) {
+        while ($row = mysqli_fetch_assoc($resultHotels)) {
+            $hotels[] = $row;
+        }
+    }
+}
+?>
 <!DOCTYPE html> 
 <html lang="en">
 <head>
@@ -65,8 +109,7 @@
       letter-spacing: 1px;
       margin-bottom: 20px;
     }
-
-    .city-search {
+ .city-search {
       display: inline-flex;
       align-items: center;
       background: #005c8a;
@@ -74,18 +117,18 @@
       overflow: hidden;
     }
 
-    .city-search input {
+    .city-search select {
       border: none;
       outline: none;
       padding: 10px 18px;
       background: transparent;
       color: #fff;
-      width: 180px;
       font-size: 14px;
+      min-width: 200px;
     }
 
-    .city-search input::placeholder {
-      color: #cfe9f4;
+    .city-search option {
+      color: #000;
     }
 
     .city-search button {
@@ -306,13 +349,21 @@
     <!-- العنوان والبحث عن مدينة -->
     <div class="inner-header">
       <h1>SEARCH BY CITY AND FILTER TO DISCOVER THE BEST HOTEL DEALS</h1>
-
-      <div class="city-search">
-        <input type="text" placeholder="Search city" />
-        <button>▼</button>
-      </div>
+<form method="get" action="search.php">
+          <div class="city-search">
+          <select name="city" required>
+            <option value="">Select a city</option>
+            <?php foreach ($cities as $city): ?>
+              <option value="<?php echo htmlspecialchars($city); ?>"
+                <?php if ($city == $selected_city) echo 'selected'; ?>>
+                <?php echo htmlspecialchars($city); ?>
+              </option>
+            <?php endforeach; ?>
+          </select>
+          <button type="submit">Search</button>
+        </div>
+      </form>
     </div>
-
     <!-- المحتوى: فلاتر + فنادق -->
     <div class="content">
       <!-- العمود الأيسر: الفلاتر -->
@@ -383,7 +434,7 @@
 
             <div class="hotel-bottom-row">
               <button class="more-info-btn">Show more info</button>
-              <div class="room-icons">🛏️🛏️🛏️</div>
+              
             </div>
           </div>
         </div>
@@ -404,7 +455,7 @@
 
             <div class="hotel-bottom-row">
               <button class="more-info-btn">Show more info</button>
-              <div class="room-icons">🛏️🛏️🛏️</div>
+            
             </div>
           </div>
         </div>
@@ -425,7 +476,7 @@
 
             <div class="hotel-bottom-row">
               <button class="more-info-btn">Show more info</button>
-              <div class="room-icons">🛏️🛏️🛏️</div>
+           
             </div>
           </div>
         </div>

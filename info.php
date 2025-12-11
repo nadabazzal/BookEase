@@ -1,3 +1,84 @@
+<?php
+session_start();
+$conn=mysqli_connect("localhost","root","","hotel_management_system");
+if( !$conn){
+  die("Connection failed: ". mysqli_connect_error());
+}
+// 2) READ hotel_id & city FROM URL
+if (!isset($_GET['hotel_id'])) {
+    die("No hotel selected.");
+}
+
+$hotel_id = (int) $_GET['hotel_id'];          // from link
+$selected_city = isset($_GET['city']) ? $_GET['city'] : '';
+
+// 3) GET HOTEL INFO
+$sqlHotel = "SELECT hotel_id, hotel_name, description, rating,
+                    country, city, base_price
+             FROM hotels
+             WHERE hotel_id = $hotel_id
+               AND status = 'approved'";
+
+$resultHotel = mysqli_query($conn, $sqlHotel);
+
+if (!$resultHotel || mysqli_num_rows($resultHotel) == 0) {
+    die("Hotel not found.");
+}
+
+$hotel = mysqli_fetch_assoc($resultHotel);
+// 4-bis) GET ROOM FEATURES FOR ALL ROOMS OF THIS HOTEL
+$roomFeatures = []; // room_id => [feature1, feature2, ...]
+
+$sqlRoomFeat = "
+    SELECT rfm.room_id, rf.featurer_name
+    FROM rooms_feature_map AS rfm
+    JOIN roomsfeatures AS rf ON rf.featurer_id = rfm.featurer_id
+    JOIN rooms AS r ON r.room_id = rfm.room_id
+    WHERE r.hotel_id = $hotel_id
+";
+
+$resultRoomFeat = mysqli_query($conn, $sqlRoomFeat);
+
+if ($resultRoomFeat && mysqli_num_rows($resultRoomFeat) > 0) {
+    while ($row = mysqli_fetch_assoc($resultRoomFeat)) {
+        $rid = $row['room_id'];
+        if (!isset($roomFeatures[$rid])) {
+            $roomFeatures[$rid] = [];
+        }
+        $roomFeatures[$rid][] = $row['featurer_name'];
+    }
+  }
+// 5) GET ROOMS FOR THIS HOTEL
+$sqlRooms = "SELECT room_id, room_type, price, capacity, status
+             FROM rooms
+             WHERE hotel_id = $hotel_id
+             ORDER BY price ASC";
+
+$resultRooms = mysqli_query($conn, $sqlRooms);
+$rooms = [];
+if ($resultRooms && mysqli_num_rows($resultRooms) > 0) {
+    while ($row = mysqli_fetch_assoc($resultRooms)) {
+        $rooms[] = $row;
+    }
+}
+
+// 6) GET HOTEL FEATURES (AMENITIES)
+$sqlFeatures = "SELECT hf.feature_name
+                FROM hotelsfeatures hf
+                JOIN hotels_features_map m
+                    ON m.feature_id = hf.feature_id
+                WHERE m.hotel_id = $hotel_id";
+
+$resultFeat = mysqli_query($conn, $sqlFeatures);
+$features = [];
+if ($resultFeat && mysqli_num_rows($resultFeat) > 0) {
+    while ($row = mysqli_fetch_assoc($resultFeat)) {
+        $features[] = $row['feature_name'];
+    }
+  }
+
+
+?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -166,19 +247,18 @@
       font-weight: 600;
     }
 
-    .book-btn {
-      background: var(--bg-dark);
-      padding: 10px 24px;
-      border-radius: 30px;
-      font-size: 13px;
-      cursor: pointer;
-      border: 1px solid #ffffff44;
-      white-space: nowrap;
-    }
+   
+.btn-primary {
+    padding: 10px 20px;
+    background:  #ffffff;
+    color: #0b2d39;
+    text-decoration: none;
+    border-radius: 10px;
+    font-weight: 600;
 
-    .book-btn:hover {
-      background: #0f4155;
-    }
+
+}
+
 
     /* ---------- ROOMS & PRICES ---------- */
     .rooms-row {
@@ -265,6 +345,11 @@
       display: inline-block;
       cursor: pointer;
     }
+    
+    /* Hidden initially */
+    .hidden {
+      display: none;
+    }
 
     /* ---------- AMENITIES ---------- */
     .amenities-card {
@@ -298,141 +383,7 @@
       max-width: 700px;
     }
 
-    /* ---------- FOOTER ---------- */
-    .footer {
-      background-color: #2a4e61;
-      color: #d7d7d7;
-      padding: 55px 9%;
-      display: flex;
-      justify-content: space-between;
-      gap: 60px;
-      flex-wrap: wrap;
-    }
-
-    .footer-item {
-      flex: 1;
-      min-width: 260px;
-    }
-
-    .footer h2 {
-      font-size: 24px;
-      margin-bottom: 22px;
-      color: #ffffff;
-    }
-
-    .footer-item p {
-      font-size: 14px;
-      line-height: 1.7;
-      margin: 10px 0;
-      color: #e0e0e0;
-      max-width: 430px;
-    }
-
-    .footer-item i {
-      color: #cba135;
-      font-size: 18px;
-      margin-right: 10px;
-    }
-
-    .social-icons i {
-      font-size: 18px;
-      color: #cba135;
-      margin-right: 20px;
-      border: 2px solid #cba135;
-      padding: 9px;
-      border-radius: 50%;
-      width: 18px;
-      height: 18px;
-      text-align: center;
-      line-height: 18px;
-      transition: 0.3s;
-      cursor: pointer;
-    }
-
-    .social-icons i:hover {
-      background-color: #cba135;
-      color: #2a4e61;
-    }
-
-    .highlight {
-      color: #ffc54d;
-      font-weight: 600;
-    }
-
-    /* ---------- RESPONSIVE ---------- */
-    @media (max-width: 900px) {
-      .rooms-row {
-        grid-template-columns: 1fr;
-      }
-    }
-
-    @media (max-width: 768px) {
-      .navbar {
-        padding: 10px 18px;
-      }
-
-      .nav-links {
-        position: absolute;
-        top: 54px;
-        right: 0;
-        background-color: var(--bg-dark);
-        width: 100%;
-        flex-direction: column;
-        align-items: center;
-        display: none;
-        padding: 14px 0 20px;
-      }
-
-      .nav-links.active {
-        display: flex;
-      }
-
-      .menu-toggle {
-        display: block;
-      }
-
-      .hero-section {
-        height: 320px;
-      }
-
-      .hero-overlay {
-        padding-top: 70px;
-      }
-
-      .hero-title {
-        font-size: 30px;
-      }
-
-      .tabs {
-        gap: 22px;
-        font-size: 11px;
-        flex-wrap: wrap;
-      }
-
-      main {
-        width: 92%;
-      }
-
-      .details-box {
-        flex-direction: column;
-        align-items: flex-start;
-      }
-
-      .book-btn {
-        align-self: flex-end;
-      }
-    }
-
-    @media (max-width: 480px) {
-      .section-header {
-        font-size: 16px;
-        padding: 8px 18px;
-      }
-
-      .about-box {
-        font-size: 12px;
-      }
-    }
+   
   </style>
 </head>
 
@@ -444,7 +395,7 @@
   <section class="hero-section">
     <img src="images/hotel.png" alt="Hotel" class="hero-img" />
     <div class="hero-overlay">
-      <h1 class="hero-title">Le Gray Beirut</h1>
+      <h1 class="hero-title"><?php echo htmlspecialchars($hotel['hotel_name']); ?></h1>
     </div>
   </section>
 
@@ -464,68 +415,140 @@
       <div class="details-box">
         <div class="details-left">
           <div class="detail-item">
-            📍 <span>Downtown Beirut, Lebanon</span>
+            📍 <span><?php echo htmlspecialchars($hotel['city'] . ', ' . $hotel['country']); ?></span>
           </div>
 
-          <div class="detail-item rating-pill">9.3</div>
-
-          <div class="detail-item">
-            📞 <span>+961 81/363443</span>
-          </div>
-
-          <div class="detail-item">
-            📧 <span>legray@gmail.com</span>
-          </div>
-        </div>
-
-        <button class="book-btn" onclick="window.location.href='booking.php';">Book Now</button>
+          <div class="detail-item rating-pill"><?php echo htmlspecialchars($hotel['rating']); ?></div>
+        <a href="search.php" class="btn-primary">Book Now</a><br>
       </div>
     </section>
 
     <hr class="section-divider" />
-
-    <!-- ROOMS AND PRICES -->
+ <!-- ROOMS -->
     <section id="rooms">
       <div class="section-header">ROOMS AND PRICES</div>
+      <?php
+    // if we have at least one room, use the first as ROOM 1
+    $firstRoom = !empty($rooms) ? $rooms[0] : null;
+  ?>
 
+      <!-- ROOM 1 -->
+     <?php if ($firstRoom): ?>
       <div class="rooms-row">
         <div class="room-photo-card">
-          <img src="images/room.jpg" alt="Corner One Bedroom Suite" />
+          <img src="images/room.jpg" alt="">
         </div>
 
         <div class="room-details-card">
           <div>
-            <h3 class="room-title">Corner One Bedroom Suite</h3>
-            <p class="room-meta">
-              Corner Suite, 1 King Bed, Separate Living Room, Dining Table, 90 sqm
-            </p>
+            <h3 class="room-title"><?php echo htmlspecialchars($rooms[0]['room_type']); ?></h3>
+            <p class="room-meta"><?php echo htmlspecialchars($rooms[0]['capacity'] . ' guests'); ?></p>
 
             <div class="room-list">
-              <span>✓ Sea View</span>
-              <span>✓ Free WiFi</span>
-              <span>✓ King Bed</span>
-              <span>✓ Breakfast</span>
-              <span>✓ Jacuzzi</span>
-              <span>✓ Smart TV</span>
+              <?php
+  $featList = isset($roomFeatures[$room['room_id']])
+      ? $roomFeatures[$room['room_id']]
+      : [];
+?>
+<div class="room-list">
+  <?php if (!empty($featList)): ?>
+    <?php foreach ($featList as $feat): ?>
+      <span>✓ <?php echo htmlspecialchars($feat); ?></span>
+    <?php endforeach; ?>
+  <?php else: ?>
+    <span>No features listed</span>
+  <?php endif; ?>
+</div>
+
             </div>
           </div>
 
           <div class="room-bottom">
-            <div class="room-guests">
-              <i class="fa-solid fa-user-group"></i>
-              <span>3</span>
-            </div>
-            <div class="room-price">500$ US/night</div>
+            <span><i class="fa-solid fa-user-group"> <?php echo (int)$firstRoom['capacity']; ?></span>
+            <span class="room-price"> <?php echo number_format($firstRoom['price'], 2); ?>$ US / night</span>
           </div>
         </div>
       </div>
+<?php else: ?>
+    <p>No rooms available for this hotel.</p>
+  <?php endif; ?>
+   <?php if (!empty($rooms) && count($rooms) > 1): ?>
+      <!-- EXTRA ROOMS — HIDDEN -->
+      <div id="extra-rooms" class="hidden">
+        <?php
+        // start from index 1 (second room) for "extra" rooms
+        for ($i = 1; $i < count($rooms); $i++):
+          $room = $rooms[$i];
+          $featList = isset($roomFeatures[$room['room_id']])
+              ? $roomFeatures[$room['room_id']]
+              : [];
+      ?>
+   <div class="rooms-row">
+          <div class="room-photo-card">
+            <img src="images/room.jpg" alt="">
+          </div>
 
-      <div class="rooms-more">Show more rooms</div>
+          <div class="room-details-card">
+            <div>
+              <h3 class="room-title">
+                <?php echo htmlspecialchars($room['room_type']); ?>
+              </h3>
+              <p class="room-meta">
+                <?php echo htmlspecialchars($room['capacity'] . ' guests'); ?>
+              </p>
+
+              <div class="room-list">
+                <?php if (!empty($featList)): ?>
+                  <?php foreach ($featList as $feat): ?>
+                    <span>✓ <?php echo htmlspecialchars($feat); ?></span>
+                  <?php endforeach; ?>
+                <?php else: ?>
+                  <span>No features listed</span>
+                <?php endif; ?>
+              </div>
+            </div>
+
+            <div class="room-bottom">
+              <span>
+                <i class="fa-solid fa-user-group"></i>
+                <?php echo (int)$room['capacity']; ?>
+              </span>
+              <span class="room-price">
+                <?php echo number_format($room['price'], 2); ?>$ US / night
+              </span>
+            </div>
+          </div>
+        </div>
+      <?php endfor; ?>
+    </div>
+
+       
+      <!-- BUTTON -->
+      <button id="show-more-rooms" class="rooms-more">Show more rooms</button>
+  <?php endif; ?>
     </section>
 
-    <hr class="section-divider" />
+  </main>
 
-    <!-- HOTEL AMENITIES -->
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      const btn = document.getElementById("show-more-rooms");
+      const extra = document.getElementById("extra-rooms");
+
+      btn.addEventListener("click", () => {
+        if (extra.classList.contains("hidden")) {
+          extra.classList.remove("hidden");
+          btn.textContent = "Show less rooms";
+        } else {
+          extra.classList.add("hidden");
+          btn.textContent = "Show more rooms";
+        }
+      });
+    });
+  </script>
+   </section>
+     <hr class="section-divider" />
+<!-- HOTEL AMENITIES -->
     <section id="amenities">
       <div class="section-header">Hotel Amenities</div>
 
@@ -559,6 +582,7 @@
 
     <hr class="section-divider" />
 
+
     <!-- ABOUT -->
     <section id="about">
       <div class="section-header">About the Hotel</div>
@@ -570,42 +594,7 @@
     </section>
   </main>
 
-  <!-- FOOTER -->
-  <footer class="footer">
-    <div class="footer-item">
-      <h2>Contact Us</h2>
-      <p>
-        <i class="fa-solid fa-location-dot"></i>
-        123 Signature Boulevard<br />
-        Preah Sihanouk, Cambodia
-      </p>
-      <p>
-        <i class="fa-solid fa-phone"></i>
-        +1 (555) 123-4567
-      </p>
-      <p>
-        <i class="fa-solid fa-envelope"></i>
-        info@thesignature.com
-      </p>
-    </div>
-
-    <div class="footer-item">
-      <h2>Stay Connected</h2>
-      <p>
-        Follow us on social media for updates<br />
-        and exclusive offers
-      </p>
-      <div class="social-icons" style="margin: 25px 0">
-        <i class="fab fa-facebook-f"></i>
-        <i class="fab fa-twitter"></i>
-        <i class="fab fa-instagram"></i>
-      </div>
-      <p>
-        Opening Hours<br />
-        <span class="highlight">24/7 Reception</span>
-      </p>
-    </div>
-  </footer>
+<?php include 'footer.html'; ?>
 
   <script>
     const toggle = document.getElementById("menu-toggle");
