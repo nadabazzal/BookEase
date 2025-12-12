@@ -1,3 +1,25 @@
+<?php
+$conn = mysqli_connect("localhost", "root", "", "hotel_management_system");
+if (!$conn) die("Connection failed: " . mysqli_connect_error());
+
+$sqlRec = "
+  SELECT hotel_id, hotel_name, rating, image
+  FROM hotels
+  WHERE status='approved'
+  ORDER BY rating DESC, hotel_id DESC
+  LIMIT 3
+";
+$resRec = mysqli_query($conn, $sqlRec);
+
+$recommended = [];
+while ($row = mysqli_fetch_assoc($resRec)) {
+  $recommended[] = $row;
+}
+?>
+
+
+
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -36,34 +58,27 @@
     <p class="section-subtitle">
        Choose from our carefully curated selection of luxury accommodations, each designed to provide the ultimate comfort and elegance. </p>
 
+  
+
     <div class="hotel-cards">
-
-        <!-- Hotel Card 1 -->
-        <div class="hotel-card">
-            <img src="images/HOTEL-IMAGE-1.jpg" alt="Hotel Image">
-            <h3>Beirut Central Hotel</h3>
-            <p class="rating">★★★★★</p>
-            <a href="hotelinfo.php" class="btn-secondary">View Details</a>
-        </div>
-
-        <!-- Hotel Card 2 -->
-        <div class="hotel-card">
-            <img src="images/HOTEL-IMAGE-2.jpg" alt="Hotel Image">
-            <h3>Tripoli Old Town Hotel</h3>
-            <p class="rating">★★★★☆</p>
-
-            <a href="hotelinfo.php" class="btn-secondary">View Details</a>
-        </div>
-
-        <!-- Hotel Card 3 -->
-        <div class="hotel-card">
-            <img src="images/HOTEL-IMAGE-3.jpg" alt="Hotel Image">
-            <h3>Byblos Harbor Hotel</h3>
-            <p class="rating">★★★★★</p>
-            <a href="hotelinfo.php" class="btn-secondary">View Details</a>
-        </div>
-
+  <?php foreach ($recommended as $h): 
+    $img = !empty($h['image']) ? $h['image'] : "images/default-hotel.jpg";
+  ?>
+    <div class="hotel-card">
+      <img src="<?php echo htmlspecialchars($img); ?>" alt="Hotel Image">
+      <h3><?php echo htmlspecialchars($h['hotel_name']); ?></h3>
+      <p class="rating"><?php echo htmlspecialchars($h['rating']); ?></p>
+      <a href="info.php?hotel_id=<?php echo (int)$h['hotel_id']; ?>" class="btn-secondary">
+        View Details
+      </a>
     </div>
+  <?php endforeach; ?>
+</div>
+
+
+
+
+    
 </section>
 
 

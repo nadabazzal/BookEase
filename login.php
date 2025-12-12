@@ -46,12 +46,31 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             // redirect based on role
             if ($user['role'] == "admin") {
                 header("Location: admin.php");
-            } elseif ($user['role'] == "housekeeper") {
+            } if ($user['role'] == "housekeeper") {
                 header("Location: housekeeper.php");
-            } else {  // 'user'
-                header("Location: favorites.php");
-            }
-            exit;
+            } // normal user → auto-add favorite if exists
+if (isset($_SESSION['pending_favorite_hotel'])) {
+
+    $hotel_id = (int) $_SESSION['pending_favorite_hotel'];
+    unset($_SESSION['pending_favorite_hotel']);
+
+    $uid = (int) $_SESSION['user_id'];
+
+    $check = "SELECT fav_id FROM favorites WHERE user_id=$uid AND hotel_id=$hotel_id";
+    $res = mysqli_query($conn, $check);
+
+    if ($res && mysqli_num_rows($res) === 0) {
+        mysqli_query(
+            $conn,
+            "INSERT INTO favorites (user_id, hotel_id) VALUES ($uid, $hotel_id)"
+        );
+         $_SESSION['fav_success'] = "Hotel added to favorites successfully ✅";
+    }
+}
+
+// ALWAYS go to favorites
+header("Location: favorites.php");
+exit;
         } else {
             $_SESSION['login_error'] = "Wrong email or password.";
             header("Location: login.php");

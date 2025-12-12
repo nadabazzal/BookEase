@@ -6,20 +6,29 @@ if (!$conn) {
 }
 
 /* ------------------------------------------------------
-   1) READ hotel_id FROM GET
+   1) READ hotel_id FROM POST (with GET fallback)
 ------------------------------------------------------ */
-if (!isset($_GET['hotel_id'])) {
+$hotel_id = 0;
+
+if (isset($_POST['hotel_id'])) {
+    $hotel_id = (int) $_POST['hotel_id'];
+} elseif (isset($_GET['hotel_id'])) {
+    // fallback in case someone opens the page by URL
+    $hotel_id = (int) $_GET['hotel_id'];
+} else {
     die("No hotel selected.");
 }
 
-$hotel_id = (int) $_GET['hotel_id'];
+if ($hotel_id <= 0) {
+    die("Invalid hotel.");
+}
 
 /* ------------------------------------------------------
    2) GET HOTEL INFO
 ------------------------------------------------------ */
 $sqlHotel = "
     SELECT hotel_id, hotel_name, description, rating,
-           country, city, base_price
+           country, city, base_price,image
     FROM hotels
     WHERE hotel_id = $hotel_id
       AND status = 'approved'
@@ -43,32 +52,32 @@ $sqlRoomFeat = "
     JOIN rooms r ON r.room_id = rfm.room_id
     WHERE r.hotel_id = $hotel_id
 ";
-
 $resultRoomFeat = mysqli_query($conn, $sqlRoomFeat);
 
 while ($row = mysqli_fetch_assoc($resultRoomFeat)) {
-    $rid = $row['room_id'];
+    $rid = (int)$row['room_id'];
     if (!isset($roomFeatures[$rid])) {
         $roomFeatures[$rid] = [];
     }
     $roomFeatures[$rid][] = $row['featurer_name'];
 }
 
+/* ------------------------------------------------------
+   4) GET ROOMS + ONE IMAGE PER ROOM
+------------------------------------------------------ */
 $sqlRooms = "
     SELECT 
         r.room_id,
         r.room_type,
         r.price,
         r.capacity,
-        MIN(ri.image) AS image      -- pick one image per room
+        MIN(ri.image) AS image
     FROM rooms r
     LEFT JOIN room_images ri ON ri.room_id = r.room_id
     WHERE r.hotel_id = $hotel_id
     GROUP BY r.room_id, r.room_type, r.price, r.capacity
     ORDER BY r.price ASC
 ";
-
-
 $resultRooms = mysqli_query($conn, $sqlRooms);
 
 $rooms = [];
@@ -104,6 +113,7 @@ while ($row = mysqli_fetch_assoc($resultFeat)) {
 <link rel="stylesheet"
       href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 
+
 <style>
 
     :root {
@@ -135,34 +145,34 @@ while ($row = mysqli_fetch_assoc($resultFeat)) {
     }
 
    
-    /* ---------- HERO ---------- */
-    .hero-section {
-      margin-top: 74px; /* navbar height */
-      position: relative;
-      width: 100%;
-      height: 430px;
-      overflow: hidden;
-    }
-
- .hero-img {
+   .hero-section {
+    position: relative;
+    width: 100%;
+    height: 420px;          /* control hero height */
+    margin-top: 74px;       /* navbar height */
+    overflow: hidden;       /* hides cropped parts */
+}
+.hotel-image {
     width: 100%;
     height: 100%;
-    object-fit: cover;
-
+    object-fit: cover;      /* 🔥 THIS DOES THE CROPPING */
+    object-position: center;
+    display: block;
 }
+
 
     .hero-overlay {
   position: absolute;
   inset: 0;
   background: linear-gradient(
     to bottom,
-    rgba(12, 36, 50, 0.6),
-    rgba(12, 36, 50, 0.9)
+    rgba(12, 36, 50, 0.4),
+    rgba(12, 36, 50, 0.85)
   );
   display: flex;
   align-items: center;       /* center vertically  */
   justify-content: center;   /* center horizontally */
-  padding: 0;                /* remove top padding */
+        /* remove top padding */
   text-align: center;
 }
 
@@ -425,6 +435,7 @@ while ($row = mysqli_fetch_assoc($resultFeat)) {
       max-width: 700px;
     }
 </style>
+
 </head>
 
 <body>
@@ -433,7 +444,13 @@ while ($row = mysqli_fetch_assoc($resultFeat)) {
 
 <!-- HERO -->
 <section class="hero-section">
-    <img src="images/hotel.png" class="hero-img">
+       <?php
+$imagePath = (!empty($hotel['image'])) 
+    ? htmlspecialchars($hotel['image']) 
+    : 'images/hotel.png';
+?>
+<img src="<?php echo $imagePath; ?>" alt="Hotel" class="hotel-image">
+
     <div class="hero-overlay">
         <h1 class="hero-title"><?php echo htmlspecialchars($hotel['hotel_name']); ?></h1>
     </div>
@@ -459,22 +476,24 @@ while ($row = mysqli_fetch_assoc($resultFeat)) {
                 📍 <?php echo htmlspecialchars($hotel['city'] . ", " . $hotel['country']); ?>
             </div>
 
-          <div class="detail-item rating-pill">
-    <?php echo htmlspecialchars($hotel['rating']); ?>
-</div>
+            <div class="detail-item rating-pill">
+                <?php echo htmlspecialchars($hotel['rating']); ?>
+            </div>
 
-<?php if ($firstRoom): ?>
-    <form action="booking.php" method="get" style="display:inline;">
-        <input type="hidden" name="room_id" value="<?php echo (int)$firstRoom['room_id']; ?>">
-        <button type="submit" class="btn-primary">Book Now</button>
-    </form>
-<?php endif; ?>
-<form method="POST" action="favorites.php" style="display:inline;">
-    <input type="hidden" name="hotel_id" value="<?php echo (int)$hotel_id; ?>">
-    <button type="submit" class="btn-secondary">
-        <i class="fa-regular fa-heart"></i> Add to Favorites
-    </button>
-</form>
+            <?php if ($firstRoom): ?>
+                <form action="booking.php" method="get" style="display:inline;">
+                    <input type="hidden" name="room_id" value="<?php echo (int)$firstRoom['room_id']; ?>">
+                    <button type="submit" class="btn-primary">Book Now</button>
+                </form>
+            <?php endif; ?>
+
+            <form method="POST" action="favorites.php" style="display:inline;">
+                <input type="hidden" name="hotel_id" value="<?php echo (int)$hotel_id; ?>">
+                <input type="hidden" name="return_to" value="<?php echo htmlspecialchars($_SERVER['REQUEST_URI']); ?>">
+                <button type="submit" class="btn-secondary">
+                    <i class="fa-regular fa-heart"></i> Add to Favorites
+                </button>
+            </form>
         </div>
     </div>
 </section>
@@ -486,77 +505,66 @@ while ($row = mysqli_fetch_assoc($resultFeat)) {
     <div class="section-header">ROOMS AND PRICES</div>
 
     <?php if ($firstRoom): ?>
-    <!-- FIRST ROOM -->
     <div class="rooms-row">
         <div class="room-photo-card">
-          <div class="room-photo-card">
-    <img src="<?php echo htmlspecialchars($firstRoom['image']); ?>" 
-         alt="Room Image">
-</div>
-
+            <img src="<?php echo htmlspecialchars($firstRoom['image'] ?: 'images/room.jpg'); ?>" alt="Room Image">
         </div>
 
         <div class="room-details-card">
-            <h3 class="room-title"><?php echo $firstRoom['room_type']; ?></h3>
-            <p class="room-meta"><?php echo $firstRoom['capacity']; ?> guests</p>
+            <h3 class="room-title"><?php echo htmlspecialchars($firstRoom['room_type']); ?></h3>
+            <p class="room-meta"><?php echo (int)$firstRoom['capacity']; ?> guests</p>
 
             <div class="room-list">
-            <?php 
-            $featList = $roomFeatures[$firstRoom['room_id']] ?? [];
-            if (!empty($featList)):
-                foreach ($featList as $f):
-            ?>
-                <span>✓ <?php echo htmlspecialchars($f); ?></span>
-            <?php endforeach; else: ?>
-                <span>No features listed</span>
-            <?php endif; ?>
+                <?php
+                $featList = $roomFeatures[(int)$firstRoom['room_id']] ?? [];
+                if (!empty($featList)):
+                    foreach ($featList as $f):
+                ?>
+                    <span>✓ <?php echo htmlspecialchars($f); ?></span>
+                <?php
+                    endforeach;
+                else:
+                ?>
+                    <span>No features listed</span>
+                <?php endif; ?>
             </div>
 
             <div class="room-bottom">
-                <span><i class="fa-solid fa-user-group"></i> 
-                    <?php echo $firstRoom['capacity']; ?>
-                </span>
-                <span class="room-price">
-                    <?php echo number_format($firstRoom['price'], 2); ?>$ / night
-                </span>
+                <span><i class="fa-solid fa-user-group"></i> <?php echo (int)$firstRoom['capacity']; ?></span>
+                <span class="room-price"><?php echo number_format((float)$firstRoom['price'], 2); ?>$ / night</span>
             </div>
         </div>
     </div>
     <?php endif; ?>
 
-    <!-- EXTRA ROOMS -->
     <?php if (count($rooms) > 1): ?>
     <div id="extra-rooms" class="hidden">
         <?php for ($i = 1; $i < count($rooms); $i++):
             $room = $rooms[$i];
-            $featList = $roomFeatures[$room['room_id']] ?? [];
+            $featList = $roomFeatures[(int)$room['room_id']] ?? [];
         ?>
         <div class="rooms-row">
             <div class="room-photo-card">
-              <div class="room-photo-card">
-    <img src="<?php echo htmlspecialchars($room['image']); ?>" 
-         alt="Room Image">
-</div>
-
+                <img src="<?php echo htmlspecialchars($room['image'] ?: 'images/room.jpg'); ?>" alt="Room Image">
             </div>
 
             <div class="room-details-card">
-                <h3 class="room-title"><?php echo $room['room_type']; ?></h3>
-                <p class="room-meta"><?php echo $room['capacity']; ?> guests</p>
+                <h3 class="room-title"><?php echo htmlspecialchars($room['room_type']); ?></h3>
+                <p class="room-meta"><?php echo (int)$room['capacity']; ?> guests</p>
 
                 <div class="room-list">
-                <?php if (!empty($featList)): ?>
-                    <?php foreach ($featList as $f): ?>
-                        <span>✓ <?php echo htmlspecialchars($f); ?></span>
-                    <?php endforeach; ?>
-                <?php else: ?>
-                    <span>No features listed</span>
-                <?php endif; ?>
+                    <?php if (!empty($featList)): ?>
+                        <?php foreach ($featList as $f): ?>
+                            <span>✓ <?php echo htmlspecialchars($f); ?></span>
+                        <?php endforeach; ?>
+                    <?php else: ?>
+                        <span>No features listed</span>
+                    <?php endif; ?>
                 </div>
 
                 <div class="room-bottom">
-                    <span><i class="fa-solid fa-user-group"></i> <?php echo $room['capacity']; ?></span>
-                    <span class="room-price"><?php echo number_format($room['price'],2); ?>$ / night</span>
+                    <span><i class="fa-solid fa-user-group"></i> <?php echo (int)$room['capacity']; ?></span>
+                    <span class="room-price"><?php echo number_format((float)$room['price'], 2); ?>$ / night</span>
                 </div>
             </div>
         </div>
@@ -565,7 +573,6 @@ while ($row = mysqli_fetch_assoc($resultFeat)) {
 
     <button id="show-more-rooms" class="rooms-more">Show more rooms</button>
     <?php endif; ?>
-
 </section>
 
 <hr class="section-divider">
