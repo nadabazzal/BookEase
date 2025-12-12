@@ -1,11 +1,18 @@
 <?php
 session_start();
 
-// User must be logged in
+// If user not logged in, remember the hotel & go to login
 if (!isset($_SESSION['user_id'])) {
-    header('Location: login.php');
+
+    if (isset($_POST['hotel_id'])) {
+        $_SESSION['pending_favorite_hotel'] = (int) $_POST['hotel_id'];
+    }
+
+    header("Location: login.php");
     exit();
 }
+
+
 
 $user_id = (int) $_SESSION['user_id'];
 
@@ -111,7 +118,7 @@ $favorites = mysqli_query($conn, $sql);
 <?php include 'navbar.html'; ?>
 
 
-
+<br><br><br><br>
 <h2 style="text-align:center; margin-top:20px;">My Favorite Hotels</h2>
 
 <section class="hotel-list">
