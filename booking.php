@@ -1,14 +1,9 @@
 <?php 
-error_reporting(E_ALL);
-ini_set('display_errors', 1);
 
 session_start();
 
 // 1) اتصال بالـ DB
 $conn = new mysqli('localhost', 'root', '', 'hotel_management_system');
-if ($conn->connect_error) {
-    die("Connection failed: " . $conn->connect_error);
-}
 
 // 2) تحديد room_id (من GET أول مرة، أو من POST بعد ما ينعمل submit)
 $room_id = 0;
@@ -18,9 +13,6 @@ if (isset($_GET['room_id'])) {
     $room_id = (int) $_POST['room_id'];
 }
 
-if ($room_id <= 0) {
-    die("No room selected.");
-}
 
 // 3) جلب معلومات الغرفة + الفندق
 $sql = "

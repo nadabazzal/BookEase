@@ -528,13 +528,7 @@ if ($resHotels && $resHotels->num_rows > 0) {
 
   <!-- Reservations card + navbar status -->
   <section class="hotel-card">
-    <div class="hotel-card-header">
-      <div class="hotel-name"><?php echo htmlspecialchars($hotelName); ?></div>
-      <div class="hotel-location">
-        <i class="fa-solid fa-location-dot"></i> <?php echo htmlspecialchars($hotelCity ?: ''); ?><br>
-        <div class="hotel-nb"><i class="fa-solid fa-phone"></i> +961 7378383</div>
-      </div>
-    </div>
+    
 
     <nav class="hotel-nav">
       <a href="admin.php?date_filter=<?php echo urlencode($filter); ?>&status_filter=main"
