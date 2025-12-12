@@ -489,6 +489,7 @@ $imagePath = (!empty($hotel['image']))
 
             <form method="POST" action="favorites.php" style="display:inline;">
                 <input type="hidden" name="hotel_id" value="<?php echo (int)$hotel_id; ?>">
+                <input type="hidden" name="return_to" value="<?php echo htmlspecialchars($_SERVER['REQUEST_URI']); ?>">
                 <button type="submit" class="btn-secondary">
                     <i class="fa-regular fa-heart"></i> Add to Favorites
                 </button>
