@@ -68,9 +68,7 @@ if (isset($_SESSION['pending_favorite_hotel'])) {
     }
 }
 
-// ALWAYS go to favorites
-header("Location: favorites.php");
-exit;
+
         } else {
             $_SESSION['login_error'] = "Wrong email or password.";
             header("Location: login.php");
