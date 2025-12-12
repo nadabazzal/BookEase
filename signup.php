@@ -72,16 +72,38 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                        VALUES ('$email_safe', '$password_hashed', 'user')";
 
         if (mysqli_query($conn, $sql_insert)) {
-            $success_msg = "Account created successfully! ";
-            $email = ""; 
-            $errors =[];  
-                 
-        } else {
-          
-            $errors[] = "Error while saving your account.Please try again " ;
+            // ✅ log the user in immediately
+    $new_user_id = mysqli_insert_id($conn);
+    $_SESSION['user_id'] = (int)$new_user_id;
+    $_SESSION['user_email'] = $email_safe;
+    $_SESSION['user_role'] = 'user';
+
+    // ✅ auto-add pending favorite after signup
+    if (isset($_SESSION['pending_favorite_hotel'])) {
+
+        $hotel_id = (int) $_SESSION['pending_favorite_hotel'];
+        unset($_SESSION['pending_favorite_hotel']);
+
+        $uid = (int) $_SESSION['user_id'];
+
+        $check = "SELECT fav_id FROM favorites WHERE user_id=$uid AND hotel_id=$hotel_id";
+        $res = mysqli_query($conn, $check);
+
+        if ($res && mysqli_num_rows($res) === 0) {
+            mysqli_query($conn, "INSERT INTO favorites (user_id, hotel_id) VALUES ($uid, $hotel_id)");
+            $_SESSION['fav_success'] = "Hotel added to favorites successfully ✅";
         }
     }
+
+    // ✅ always go to favorites page after signup
+    header("Location: favorites.php");
+    exit;
+
+} else {
+    $errors[] = "Error while saving your account.Please try again ";
 }
+    }
+  }
 ?>
 <!DOCTYPE html>
 <html lang="en">

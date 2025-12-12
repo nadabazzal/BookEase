@@ -9,7 +9,10 @@ body {
     overflow-x: hidden;
     font-family: 'Montserrat', sans-serif;
 }
-
+h2{
+    font-family: 'Playfair Display', serif;
+    color: white;
+}
 
 
 /* HOTEL LIST */

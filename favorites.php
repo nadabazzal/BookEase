@@ -109,7 +109,10 @@ $favorites = mysqli_query($conn, $sql);
     background-color: #295066; 
     color: #999;
 }
-
+h2{
+    font-family: 'Playfair Display', serif;
+    color: white;
+}
 
     </style>
 </head>
