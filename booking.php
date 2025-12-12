@@ -1,16 +1,28 @@
-<?php
+<?php 
+error_reporting(E_ALL);
+ini_set('display_errors', 1);
+
 session_start();
 
-
-// 2. Connect to database
+// 1) اتصال بالـ DB
 $conn = new mysqli('localhost', 'root', '', 'hotel_management_system');
+if ($conn->connect_error) {
+    die("Connection failed: " . $conn->connect_error);
+}
 
-// 3. Get room_id from URL, e.g. booking.php?room_id=3
+// 2) تحديد room_id (من GET أول مرة، أو من POST بعد ما ينعمل submit)
+$room_id = 0;
+if (isset($_GET['room_id'])) {
+    $room_id = (int) $_GET['room_id'];
+} elseif (isset($_POST['room_id'])) {
+    $room_id = (int) $_POST['room_id'];
+}
 
+if ($room_id <= 0) {
+    die("No room selected.");
+}
 
-$room_id = (int) $_GET['room_id'];
-
-// 4. Fetch room + hotel info for summary & price
+// 3) جلب معلومات الغرفة + الفندق
 $sql = "
     SELECT r.room_id, r.price, r.capacity, r.room_type, h.hotel_name
     FROM rooms r
@@ -21,10 +33,103 @@ $stmt = $conn->prepare($sql);
 $stmt->bind_param("i", $room_id);
 $stmt->execute();
 $result = $stmt->get_result();
-
 $room = $result->fetch_assoc();
 $stmt->close();
-$conn->close();
+
+if (!$room) {
+    $conn->close();
+    die("Room not found.");
+}
+
+// متغيّرات لرسالة نجاح/خطأ
+$success_msg = "";
+$error_msg   = "";
+
+// 4) إذا الفورم انبعت (POST) → نعمل INSERT بجدول booking
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+
+    // user_id من السيشن (عدّليه حسب نظامك)
+    $user_id = $_SESSION['user_id'] ?? 1; // مؤقتاً 1 إذا ما عندك login جاهز
+
+    $checkin        = $_POST['checkin'] ?? null;
+    $checkout       = $_POST['checkout'] ?? null;
+    $guests         = isset($_POST['guests']) ? (int)$_POST['guests'] : 0;
+    $first_name     = trim($_POST['first_name'] ?? '');
+    $last_name      = trim($_POST['last_name'] ?? '');
+    $email          = trim($_POST['email'] ?? '');
+    $payment_method = $_POST['payment_method'] ?? null;
+
+    // تحقق بسيط
+    if (
+        empty($checkin) || empty($checkout) ||
+        empty($guests)  || empty($first_name) ||
+        empty($last_name) || empty($email) ||
+        empty($payment_method)
+    ) {
+        $error_msg = "Please fill in all required fields.";
+    } else {
+
+        $checkin_ts  = strtotime($checkin);
+        $checkout_ts = strtotime($checkout);
+
+        if ($checkin_ts === false || $checkout_ts === false || $checkout_ts <= $checkin_ts) {
+            $error_msg = "Invalid dates: check-out must be after check-in.";
+        } else {
+            // حساب عدد الليالي والسعر
+            $price_per_night = (float)$room['price'];
+            $nights = (int) round(($checkout_ts - $checkin_ts) / 86400);
+            if ($nights < 1) $nights = 1;
+
+            $total_amount = $price_per_night * $nights;
+
+            // قيم ابتدائية
+            $status         = 'pending';
+            $payment_status = 'pending';
+            if ($payment_method === 'credit_card') {
+                $payment_status = 'paid';
+            }
+
+            $created_at = date('Y-m-d H:i:s');
+
+            $sql_insert = "INSERT INTO booking
+                (user_id, room_id, check_in, check_out, created_at, status, guests_no, total_amount, payment_method, payment_status,
+                 guest_first_name, guest_last_name, guest_email)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+
+            $stmt_ins = $conn->prepare($sql_insert);
+            if (!$stmt_ins) {
+                $error_msg = "Prepare failed: " . $conn->error;
+            } else {
+
+                // ✅ FIXED: 13 types for 13 variables (كان عندك حرف زيادة قبل)
+                $stmt_ins->bind_param(
+                    "iissssidsssss",
+                    $user_id,
+                    $room_id,
+                    $checkin,
+                    $checkout,
+                    $created_at,
+                    $status,
+                    $guests,
+                    $total_amount,
+                    $payment_method,
+                    $payment_status,
+                    $first_name,
+                    $last_name,
+                    $email
+                );
+
+                if ($stmt_ins->execute()) {
+                    $success_msg = "Booking saved successfully! ✅";
+                } else {
+                    $error_msg = "Error saving booking: " . $stmt_ins->error;
+                }
+
+                $stmt_ins->close();
+            }
+        }
+    }
+}
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -282,8 +387,22 @@ body {
   display: none;
 }
 
+/* رسائل */
+.alert {
+  padding: 10px 14px;
+  border-radius: 16px;
+  margin-bottom: 12px;
+  font-size: 0.9rem;
+}
 
- </style>
+.alert-success {
+  background: #1c7c57;
+}
+
+.alert-error {
+  background: #8b1f2b;
+}
+  </style>
 </head>
 
 <body>
@@ -308,10 +427,18 @@ body {
       <h1 class="card-title">Booking Details</h1>
       <p class="card-subtitle">Select your dates and enter your information</p>
 
-      <!-- Form sends data to process_booking.php -->
-      <form class="booking-form" action="process_booking.php" method="post">
+      <?php if (!empty($success_msg)): ?>
+        <div class="alert alert-success"><?php echo htmlspecialchars($success_msg); ?></div>
+      <?php endif; ?>
 
-        <!-- pass room_id (and user_id from session if you want) -->
+      <?php if (!empty($error_msg)): ?>
+        <div class="alert alert-error"><?php echo htmlspecialchars($error_msg); ?></div>
+      <?php endif; ?>
+
+      <!-- Form sends data to SAME PAGE -->
+      <form class="booking-form" action="" method="post">
+
+        <!-- pass room_id -->
         <input type="hidden" name="room_id" value="<?php echo htmlspecialchars($room['room_id']); ?>">
 
         <!-- Check-in -->
@@ -382,7 +509,6 @@ body {
           <div class="form-group">
             <label class="label-strong">Choose Payment Method</label>
             <div class="select-wrapper">
-              <!-- values MUST match enum in DB: 'credit_card','at_hotel' -->
               <select name="payment_method" id="payment-method" required>
                 <option value="at_hotel">Pay at Hotel</option>
                 <option value="credit_card">Credit Card</option>
@@ -421,7 +547,7 @@ body {
       <h1 class="card-title">Room Summary</h1>
 
       <p class="room-type">
-        <?php echo htmlspecialchars($room['hotel_name']); ?> – 
+        <?php echo htmlspecialchars($room['hotel_name']); ?> –
         <?php echo htmlspecialchars($room['room_type']); ?>
       </p>
       <p class="room-desc">
@@ -453,29 +579,28 @@ body {
   <?php include 'footer.html'; ?>
 
   <!-- JS لإظهار الدفع + حقول الكريدت كارد -->
- <script>
-  // Show payment section
-  const showPaymentBtn = document.getElementById('show-payment-btn');
-  const paymentSection = document.getElementById('payment-section');
+  <script>
+    // Show payment section
+    const showPaymentBtn = document.getElementById('show-payment-btn');
+    const paymentSection = document.getElementById('payment-section');
 
-  showPaymentBtn.addEventListener('click', function () {
-    paymentSection.style.display = 'block';
-    paymentSection.scrollIntoView({ behavior: 'smooth' });
-  });
+    showPaymentBtn.addEventListener('click', function () {
+      paymentSection.style.display = 'block';
+      paymentSection.scrollIntoView({ behavior: 'smooth' });
+    });
 
-  // Show credit card fields only if "Credit Card" selected
-  const paymentSelect = document.getElementById('payment-method');
-  const cardFields = document.getElementById('card-fields');
+    // Show credit card fields only if "Credit Card" selected
+    const paymentSelect = document.getElementById('payment-method');
+    const cardFields = document.getElementById('card-fields');
 
-  paymentSelect.addEventListener('change', function () {
-    if (this.value === 'credit_card') {
-      cardFields.style.display = 'block';
-    } else {
-      cardFields.style.display = 'none';
-    }
-  });
-</script>
-
+    paymentSelect.addEventListener('change', function () {
+      if (this.value === 'credit_card') {
+        cardFields.style.display = 'block';
+      } else {
+        cardFields.style.display = 'none';
+      }
+    });
+  </script>
 
 </body>
 </html>
