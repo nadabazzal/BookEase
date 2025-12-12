@@ -1,128 +1,167 @@
+<?php
+session_start();
+
+// User must be logged in
+if (!isset($_SESSION['user_id'])) {
+    header('Location: login.php');
+    exit();
+}
+
+$user_id = (int) $_SESSION['user_id'];
+
+// Connect to DB (procedural)
+$conn = mysqli_connect('localhost', 'root', '', 'hotel_management_system');
+if (!$conn) {
+    die("Connection failed: " . mysqli_connect_error());
+}
+
+/* ==========================
+   1) ADD TO FAVORITES
+   ========================== */
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['hotel_id'])) {
+
+    $hotel_id = (int) $_POST['hotel_id'];
+
+    $check_sql = "SELECT fav_id FROM favorites WHERE user_id = $user_id AND hotel_id = $hotel_id";
+    $check_res = mysqli_query($conn, $check_sql);
+
+    if ($check_res && mysqli_num_rows($check_res) == 0) {
+
+        $insert_sql = "INSERT INTO favorites (user_id, hotel_id) VALUES ($user_id, $hotel_id)";
+        mysqli_query($conn, $insert_sql);
+
+        echo "<script>alert('Hotel added to favorites successfully ✅');</script>";
+
+    } else {
+        echo "<script>alert('This hotel is already in your favorites ⭐');</script>";
+    }
+}
+
+
+/* ==========================
+   2) REMOVE FROM FAVORITES
+   ========================== */
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['remove_hotel_id'])) {
+
+    $remove_hotel_id = (int) $_POST['remove_hotel_id'];
+
+    $del_sql = "DELETE FROM favorites 
+                WHERE user_id = $user_id AND hotel_id = $remove_hotel_id LIMIT 1";
+
+    mysqli_query($conn, $del_sql);
+
+    echo "<script>
+            alert('Hotel removed from favorites ❌');
+            window.location.href = 'favorites.php';
+          </script>";
+    exit();
+}
+
+
+// Get favorites with hotel info (including image)
+$sql = "
+    SELECT h.hotel_id,
+           h.hotel_name,
+           h.city,
+           h.country,
+           h.base_price,
+           h.image
+    FROM favorites f
+    JOIN hotels h ON f.hotel_id = h.hotel_id
+    WHERE f.user_id = $user_id
+";
+$favorites = mysqli_query($conn, $sql);
+?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Hotels</title>
+    <title>My Favorite Hotels</title>
     <link rel="stylesheet" href="favorites.css">
 
-    <!-- Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Montserrat:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-
-    <!-- Font Awesome -->
-    <link
-        rel="stylesheet"
-        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
-        integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA=="
-        crossorigin="anonymous"
-        referrerpolicy="no-referrer"
-    />
-
-    <!-- Small extra styles for the favorite button -->
     <style>
-        .favorite-btn {
-            padding: 6px 10px;
-            border-radius: 20px;
-            border: 1px solid #ffffff;
-            background-color: transparent;
-            color: #ffffff;
-            font-size: 12px;
-            cursor: pointer;
-            display: inline-flex;
-            justify-content: center;
-            align-items: center;
-            gap: 6px;
-        }
+        
+  .favorite-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0;
+    margin-left: 100px; 
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
 
-        .favorite-btn i {
-            font-size: 10px;
-        }
+.favorite-btn i {
+    font-size: 22px;
+    color: #ffffff;
+    transition: 0.3s ease;
+}
 
-        .favorite-btn:hover {
-            background-color: #ffffff;
-            color: #1b2b34;
-        }
+.favorite-btn:hover i {
+    background-color: #295066; 
+    color: #999;
+}
+
+
     </style>
 </head>
 <body>
 
 <?php include 'navbar.html'; ?>
 
-<br><br><br><br><br>
 
 
-<!-- FILTER HEADER REMOVED -->
+<h2 style="text-align:center; margin-top:20px;">My Favorite Hotels</h2>
 
 <section class="hotel-list">
-
-    <!-- HOTEL CARD 1 -->
+<?php
+if ($favorites && mysqli_num_rows($favorites) > 0):
+    while ($row = mysqli_fetch_assoc($favorites)):
+?>
     <div class="hotel-card">
-        <img src="images/hotel.png" class="hotel-img">
+        <img src="<?php echo htmlspecialchars($row['image']); ?>" class="hotel-img" alt="Hotel">
 
         <div class="hotel-info">
-            <h3 class="hotel-name">LE GRAY BEIRUT</h3>
-            <p class="price">FROM $500/NIGHT</p>
- <div class="hotel-stars">★★★★★</div>
+            <h3 class="hotel-name"><?php echo htmlspecialchars($row['hotel_name']); ?></h3>
+            <p class="hotel-location">
+                <?php echo htmlspecialchars($row['city'] . ', ' . $row['country']); ?>
+            </p>
 
-            <button class="more-btn" onclick="window.location.href='hotelInfo.php';">
+            <?php if (!empty($row['base_price'])): ?>
+                <p class="price">From $<?php echo htmlspecialchars($row['base_price']); ?>/night</p>
+            <?php endif; ?>
+
+            <!-- Go to hotel details -->
+            <button class="more-btn"
+                onclick="window.location.href='hotelInfo.php?hotel_id=<?php echo $row['hotel_id']; ?>';">
                 Show more info
             </button>
-        </div>
+
+            <!-- Remove from favorites -->
+           <form method="POST" style="display:inline-block; margin-left:10px;">
+    <input type="hidden" name="remove_hotel_id" value="<?php echo (int)$row['hotel_id']; ?>">
+    <button class="favorite-btn" type="submit">
+        <i class="fa-solid fa-bookmark"></i>
+    </button>
+</form>
 
 
-           <button class="favorite-btn">
-    <i class="fa-solid fa-bookmark"></i>
-</button>
-
-        </div>
-    </div>
-
-    <!-- HOTEL CARD 2 -->
-    <div class="hotel-card">
-        <img src="images/hotel.png" class="hotel-img">
-
-        <div class="hotel-info">
-            <h3 class="hotel-name">LE GRAY BEIRUT</h3>
-            <p class="price">FROM $500/NIGHT</p>
-
-            <div class="stars">
-                ★★★★★
-            </div>
-
-            <button class="more-btn" onclick="window.location.href='hotelInfo.php';">
-                Show more info
-            </button>
-        </div>
-
-      
-
-            <!-- Favorite / Unfavorite button -->
-            <button class="favorite-btn">
-                <i class="fa-solid fa-bookmark"></i>
                 
-            </button>
+            </form>
         </div>
     </div>
+<?php
+    endwhile;
+else:
+    echo "<p style='text-align:center; margin-top:20px;'>You have no favorite hotels yet.</p>";
+endif;
 
-
-
-
-
+mysqli_close($conn);
+?>
 </section>
 
 <?php include 'footer.html'; ?>
-
-<script>
-    // When clicking "Unfavorite", remove that hotel card from the list
-    document.querySelectorAll('.favorite-btn').forEach(function(btn) {
-        btn.addEventListener('click', function() {
-            const card = this.closest('.hotel-card');
-            if (card) {
-                card.remove();
-            }
-        });
-    });
-</script>
 
 </body>
 </html>

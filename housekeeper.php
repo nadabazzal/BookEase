@@ -1,3 +1,119 @@
+<?php
+session_start();
+date_default_timezone_set("Asia/Beirut");
+
+
+// 1) User must be logged in (housekeeper)
+if (!isset($_SESSION['user_id'])) {
+    header('Location: login.php');
+    exit();
+}
+
+$housekeeper_id = (int) $_SESSION['user_id'];
+
+
+// 2) Connect to DB (procedural)
+$conn = mysqli_connect('localhost', 'root', '', 'hotel_management_system');
+if (!$conn) {
+    die("Connection failed: " . mysqli_connect_error());
+}
+
+/* ====== HOUSEKEEPER NAME FOR WELCOME TEXT ====== */
+$housekeeper_name = '';
+$name_sql = "SELECT first_name FROM users WHERE user_id = $housekeeper_id";
+$name_res = mysqli_query($conn, $name_sql);
+if ($name_res && mysqli_num_rows($name_res) === 1) {
+    $user_row = mysqli_fetch_assoc($name_res);
+    $housekeeper_name = $user_row['first_name'];
+}
+
+/* ====== STATUS FILTER (TABS) ====== */
+$allowed_status = ['all', 'pending', 'in_progress', 'done'];
+$status_filter = "all";
+
+if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['status'])) {
+    if (in_array($_POST['status'], $allowed_status, true)) {
+        $status_filter = $_POST['status'];
+    }
+}
+
+
+
+/* ============================
+   HANDLE STATUS UPDATE (POST)
+   ============================ */
+//التعامل مع الفورم (عند الضغط على غرفة أو زر تغيير حالة)
+$selected = null;
+$selected_hs_id = null;
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['hs_id'])) {
+    $selected_hs_id = (int) $_POST['hs_id'];
+
+    // إذا ضغطنا على Start / Done نحدّث الحالة
+    if (isset($_POST['update_status'])) {
+        $new_status = $_POST['update_status'];
+
+        // whitelist للحالات المسموحة فقط
+        if ($new_status === 'in_progress' || $new_status === 'done') {
+            $upd_sql = "
+                UPDATE housekeeping_requests
+                SET status = '$new_status'
+                WHERE hs_id = $selected_hs_id
+                  AND assign_to = $housekeeper_id
+                LIMIT 1
+            ";
+            mysqli_query($conn, $upd_sql);
+        }
+    }
+
+    // بعد التحديث (أو بدون تحديث) نجيب تفاصيل هذا الطلب
+    $detail_sql = "
+        SELECT 
+            hr.*,
+            s.service_name,
+            s.description AS service_desc,
+            r.room_nb
+        FROM housekeeping_requests hr
+        JOIN services s ON hr.service_id = s.service_id
+        JOIN rooms r    ON hr.room_id   = r.room_id
+        WHERE hr.hs_id = $selected_hs_id
+          AND hr.assign_to = $housekeeper_id
+        LIMIT 1
+    ";
+
+    $detail_res = mysqli_query($conn, $detail_sql);
+
+    if ($detail_res && mysqli_num_rows($detail_res) === 1) {
+        $selected = mysqli_fetch_assoc($detail_res);
+    }
+}
+
+/* ============================
+   LEFT LIST: ALL REQUESTS (BY ROOM)
+   ============================ */
+
+$status_sql = ($status_filter === 'all')? "" : " AND hr.status = '$status_filter'";
+
+$list_sql = "
+    SELECT 
+        hr.hs_id,
+        hr.created_at,
+        hr.status,
+        s.service_name,
+        r.room_nb
+    FROM housekeeping_requests hr
+    JOIN services s ON hr.service_id = s.service_id
+    JOIN rooms r ON hr.room_id = r.room_id
+    WHERE hr.assign_to = $housekeeper_id
+    $status_sql
+    ORDER BY hr.created_at DESC
+";
+
+
+
+
+$list_res = mysqli_query($conn, $list_sql);
+?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -44,11 +160,6 @@
       margin-bottom: 4px;
     }
 
-    .welcome-title span {
-      font-style: italic;
-      font-weight: 500;
-    }
-
     .welcome-meta {
       font-size: 14px;
       color: #d3e0e8;
@@ -90,24 +201,31 @@
       letter-spacing: .5px;
       margin-bottom: 16px;
     }
-
     .tasks-tabs {
-      display: flex;
+  display: flex;
+  gap: 12px; /* space between buttons */
+}
+
+
+    .tasks-tabs button { 
+      display: inline-flex;
+      
+      align-items: center;
+      justify-content: center;
       gap: 18px;
       margin-bottom: 16px;
       font-size: 14px;
-    }
-
-    .tasks-tabs a {
-      padding-bottom: 2px;
-      border-bottom: 1px solid transparent;
-    }
-
-    .tasks-tabs a.active {
       border-color: #f2e6c9;
+      border-radius: 15px;
+      padding: 8px 16px;
+      background: none;
+      cursor: pointer;
+      color: #f2e6c9;
     }
 
-    /* GUEST LIST */
+  
+
+    /* LIST OF ROOMS / REQUESTS */
     .guest-list {
       display: flex;
       flex-direction: column;
@@ -132,8 +250,15 @@
       font-size: 12px;
     }
 
-    .guest-item a {
+    .guest-item button {
+      background: none;
+      border: none;
+      padding: 0;
+      margin-left: 6px;
+      font-size: 15px;
       text-decoration: underline;
+      color: inherit;
+      cursor: pointer;
     }
 
     /* DETAILS CARD */
@@ -198,79 +323,138 @@
       background: #f0f0f0;
       transform: translateY(-2px);
     }
-
-  
+    .white-text {
+    white-space: pre-line;
+}
 
   </style>
 </head>
 
 <body>
-    <?php include 'navbar.html'; ?>
-    <br><br><br><br>
-  <main class="page-wrapper">
+<?php include 'navbar.html'; ?>
+<br><br><br><br>
 
-    <!-- WELCOME -->
-    <section class="welcome-block">
-      <h1 class="welcome-title">Welcome,esma</h1>
-      <p class="welcome-meta">
-        Shift: 8:00 AM – 4:00 PM<br>
-        Today: December 7, 2025
-      </p>
-    </section>
+<main class="page-wrapper">
 
-    <!-- TASKS CARD -->
-    <section class="card">
-      <div class="tasks-header">
-        <div class="chip">📅 Today</div>
-        <div class="chip">📍 Beirut &nbsp;•&nbsp; 75788833</div>
-      </div>
+  <!-- WELCOME -->
+  <section class="welcome-block">
+    <h1 class="welcome-title">Welcome, <?php echo htmlspecialchars($housekeeper_name); 
+    ?></h1>
+    <p class="welcome-meta">
+      Shift: 8:00 AM – 4:00 PM<br>
+      Today: <?php  
+           echo date("l, d F Y");
+?>
 
-      <div class="tasks-hotel">LE GREY HOTEL</div>
+    </p>
+  </section>
 
-      <div class="tasks-tabs">
-        <a href="#" class="active">Today’s Requests</a>
-        <a href="#">To clean</a>
-        <a href="#">In Progress</a>
-        <a href="#">Completed</a>
-      </div>
+  <!-- TASKS CARD (LEFT: LIST OF REQUESTS) -->
+  <section class="card">
+    <div class="tasks-header">
+      <div class="chip">📍 Beirut • Housekeeping</div>
+    </div>
 
-      <div class="guest-list">
-        <div class="guest-item"><div class="guest-icon">👤</div> <a href="#">NANCY AWADA</a></div>
-        <div class="guest-item"><div class="guest-icon">👤</div> <a href="#">GHADIR MAZLOUM</a></div>
-        <div class="guest-item"><div class="guest-icon">👤</div> <a href="#">NADEEN FARES</a></div>
-      </div>
-    </section>
+    <div class="tasks-hotel">Assigned Requests</div>
 
-    <!-- DETAILS CARD -->
-    <section class="card">
-      <h2 class="details-title">Details</h2>
+    <div class="tasks-tabs">
 
-      <div class="details-grid">
-        <div><span class="label">Task ID:</span> HK-20341</div>
-        <div><span class="label">Date:</span> March 14, 2025</div>
-        <div><span class="label">Time:</span> 9:00 AM</div>
-        <div><span class="label">Duration:</span> 3 hours</div>
-        <div><span class="label">Status:</span> Scheduled</div>
-      </div>
+    <form method="POST">
+    <button name="status" value="all">All</button>
+</form>
+      <form method="POST">
+    <button name="status" value="pending">Pending</button>
+</form>
 
-      <div class="divider"></div>
+<form method="POST">
+    <button name="status" value="in_progress">In Progress</button>
+</form>
 
-      <div class="services-title">Services Cleaning</div>
+<form method="POST">
+    <button name="status" value="done">Done</button>
+</form>
 
-      <p class="services-text">
-        <strong>Package:</strong> Deep Cleaning<br>
-        <strong>Rooms:</strong> 2 bedrooms, 1 bathroom, kitchen, living room<br>
-        <strong>Extras:</strong> Inside fridge, balcony sweep, linen change<br>
-        <strong>Notes:</strong> Pet in apartment – friendly dog
-      </p>
+    </div>
 
-      <div class="actions-row">
-        <button class="btn-pill">Start cleaning</button>
-        <button class="btn-pill">Mark as Cleaned</button>
-      </div>
-    </section>
+    <div class="guest-list">
+      <?php
+      if ($list_res && mysqli_num_rows($list_res) > 0):
+          while ($row = mysqli_fetch_assoc($list_res)):
+      ?>
+        <form method="POST">
+          <div class="guest-item">
+            <div class="guest-icon">🛏</div>
+            <!-- Hidden hs_id sent via POST -->
+            <input type="hidden" name="hs_id" value="<?php echo (int)$row['hs_id']; ?>">
+            <button type="submit">
+              Room <?php echo htmlspecialchars($row['room_nb']); ?>
+              – <?php echo htmlspecialchars($row['service_name']); ?>
+              (<?php echo htmlspecialchars($row['status']); ?>)
+            </button>
+          </div>
+        </form>
+      <?php
+          endwhile;
+      else:
+          echo "<p>No housekeeping requests assigned.</p>";
+      endif;
+      ?>
+    </div>
+  </section>
 
-  </main>
-  <?php include 'footer.html'; ?>
+  <!-- DETAILS CARD (ONLY IF A REQUEST IS SELECTED) -->
+  <?php if ($selected): ?>
+  <section class="card" id="details-card">
+
+    <h2 class="details-title">
+      Room <?php echo htmlspecialchars($selected['room_nb']); ?>
+      – <?php echo htmlspecialchars($selected['service_name']); ?>
+    </h2>
+
+    <div class="details-grid">
+      <div><span class="label">Request ID:</span> HK-<?php echo $selected['hs_id']; ?></div>
+      <div><span class="label">Status:</span> <?php echo htmlspecialchars($selected['status']); ?></div>
+      <div><span class="label">Created at:</span> <?php echo htmlspecialchars($selected['created_at']); ?></div>
+    </div>
+
+    <div class="divider"></div>
+
+    <div class="services-title">Service & Notes</div>
+
+    <p class="services-text">
+      <strong>Service description:</strong>
+      <?php echo nl2br(htmlspecialchars($selected['service_desc'])); ?><br><br>
+
+      <strong>Notes:</strong>
+   
+      <?php echo nl2br(htmlspecialchars($selected['notes'])); ?>
+    </p>
+
+    <div class="actions-row">
+      <!-- Start cleaning = in_progress -->
+      <form method="POST">
+        <input type="hidden" name="hs_id" value="<?php echo (int)$selected['hs_id']; ?>">
+        <button class="btn-pill" type="submit" name="update_status" value="in_progress">
+          Start cleaning
+        </button>
+      </form>
+
+      <!-- Mark as cleaned = done -->
+      <form method="POST">
+        <input type="hidden" name="hs_id" value="<?php echo (int)$selected['hs_id']; ?>">
+        <button class="btn-pill" type="submit" name="update_status" value="done">
+          Mark as Cleaned
+        </button>
+      </form>
+    </div>
+  </section>
+  <?php endif; ?>
+
+</main>
+
+<?php
+mysqli_close($conn);
+include 'footer.html';
+?>
 </body>
 </html>
