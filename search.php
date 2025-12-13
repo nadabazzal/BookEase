@@ -1,9 +1,7 @@
 <?php
 session_start();
 
-/* ==========================
-   CONNECT TO DATABASE
-========================== */
+// 1) CONNECT TO DATABASE
 $conn = mysqli_connect('localhost', 'root', '', 'hotel_management_system');
 if (!$conn) {
     die("Connection failed: " . mysqli_connect_error());
@@ -13,10 +11,10 @@ if (!$conn) {
    GET DISTINCT CITIES
 ========================== */
 $cities = array();
-$sqlCities = "SELECT DISTINCT city FROM hotels WHERE status='approved' ORDER BY city ASC";
+$sqlCities = "SELECT DISTINCT city FROM hotels WHERE status = 'approved' ORDER BY city ASC";
 $resultCities = mysqli_query($conn, $sqlCities);
 
-if ($resultCities) {
+if ($resultCities && mysqli_num_rows($resultCities) > 0) {
     while ($row = mysqli_fetch_assoc($resultCities)) {
         $cities[] = $row['city'];
     }
@@ -28,7 +26,6 @@ if ($resultCities) {
 $hotelFeatures = array();
 $sqlHF = "SELECT feature_id, feature_name FROM hotelsfeatures ORDER BY feature_name ASC";
 $resultHF = mysqli_query($conn, $sqlHF);
-
 if ($resultHF) {
     while ($row = mysqli_fetch_assoc($resultHF)) {
         $hotelFeatures[] = $row;
@@ -41,7 +38,6 @@ if ($resultHF) {
 $roomFeatures = array();
 $sqlRF = "SELECT featurer_id, featurer_name FROM roomsfeatures ORDER BY featurer_name ASC";
 $resultRF = mysqli_query($conn, $sqlRF);
-
 if ($resultRF) {
     while ($row = mysqli_fetch_assoc($resultRF)) {
         $roomFeatures[] = $row;
@@ -58,19 +54,19 @@ $selectedRoomFeat  = isset($_POST['room_features']) ? $_POST['room_features'] : 
 $sort              = isset($_POST['sort']) ? $_POST['sort'] : 'recommended';
 
 /* ==========================
-   BUILD QUERY
+   BUILD MAIN QUERY
 ========================== */
-if ($selected_city != '') {
-
+if ($selected_city !== '') {
     $city_safe = mysqli_real_escape_string($conn, $selected_city);
 
     $sql = "
         SELECT 
-            h.hotel_id,
-            h.hotel_name,
-            h.rating,
-            h.city,
-            h.country,
+            h.hotel_id, 
+            h.hotel_name, 
+            h.description, 
+            h.rating, 
+            h.city, 
+            h.country, 
             h.base_price,
             h.image
         FROM hotels h
@@ -78,10 +74,10 @@ if ($selected_city != '') {
           AND h.status = 'approved'
     ";
 
-    /* ---- HOTEL FEATURES FILTER ---- */
+    // HOTEL FEATURES FILTER
     if (!empty($selectedHotelFeat)) {
         $hfIds = array_map('intval', $selectedHotelFeat);
-        $inHF  = implode(',', $hfIds);
+        $inHF = implode(',', $hfIds);
 
         $sql .= "
           AND h.hotel_id IN (
@@ -94,10 +90,10 @@ if ($selected_city != '') {
         ";
     }
 
-    /* ---- ROOM FEATURES FILTER ---- */
+    // ROOM FEATURES FILTER
     if (!empty($selectedRoomFeat)) {
         $rfIds = array_map('intval', $selectedRoomFeat);
-        $inRF  = implode(',', $rfIds);
+        $inRF = implode(',', $rfIds);
 
         $sql .= "
           AND h.hotel_id IN (
@@ -111,7 +107,7 @@ if ($selected_city != '') {
         ";
     }
 
-    /* ---- SORTING ---- */
+    // SORTING
     switch ($sort) {
         case 'price_asc':
             $sql .= " ORDER BY h.base_price ASC";
@@ -122,161 +118,208 @@ if ($selected_city != '') {
         case 'rating':
             $sql .= " ORDER BY h.rating DESC";
             break;
+        case 'recommended':
         default:
             $sql .= " ORDER BY h.rating DESC, h.base_price ASC";
             $sort = 'recommended';
             break;
     }
 
+    // RUN QUERY
     $resultHotels = mysqli_query($conn, $sql);
-    if ($resultHotels) {
+    if ($resultHotels && mysqli_num_rows($resultHotels) > 0) {
         while ($row = mysqli_fetch_assoc($resultHotels)) {
             $hotels[] = $row;
         }
     }
 }
 ?>
-<!DOCTYPE html>
+<!DOCTYPE html> 
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<title>BookEase – Search Hotels</title>
-
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BookEase – Hotel Deals</title>
 <style>
-*{box-sizing:border-box;margin:0;padding:0}
-body{font-family:Arial;background:#022432;color:#fff}
-.page-wrapper{max-width:1100px;margin:20px auto;background:#024158;border-radius:10px}
-.inner-header{text-align:center;padding:25px;background:linear-gradient(#024158,#012c3b)}
-.city-search{display:inline-flex;background:#005c8a;border-radius:25px;overflow:hidden}
-.city-search select{padding:10px 18px;background:none;border:none;color:#fff}
-.city-search option{color:#000}
-.city-search button{background:#013a52;border:none;color:#fff;padding:10px 16px}
-.content{display:flex;padding:20px;gap:20px}
-.filters-column{width:280px}
-.filter-box{background:#013549;border-radius:10px;padding:15px;margin-bottom:20px}
-.filter-title{text-align:center;margin-bottom:10px}
-.toggle-btn{width:100%;padding:8px;border-radius:20px;background:#024d68;border:none;color:#fff}
-.pill-list{display:none;flex-direction:column;gap:8px;margin-top:10px}
-.pill-btn{background:#b0d7e8;color:#033142;padding:8px;border-radius:20px;cursor:pointer}
-.pill-btn input{display:none}
-.results-column{flex:1}
-.sort-row{display:flex;justify-content:flex-end;margin-bottom:10px}
-.sort-select{background:#013549;color:#fff;border-radius:20px;padding:6px}
-.hotel-card{display:flex;background:#013549;border-radius:10px;margin-bottom:15px;overflow:hidden}
-.hotel-image{width:220px;height:160px;object-fit:cover}
-.hotel-info{padding:14px;flex:1}
-.more-info-btn{background:#b0d7e8;color:#033142;padding:6px 14px;border-radius:18px;text-decoration:none}
+/* (CSS unchanged) */
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: Arial, Helvetica, sans-serif; background: #022432; color: #ffffff; }
+    a { color: inherit; text-decoration: none; }
+    .page-wrapper { max-width: 1100px; margin: 20px auto; background: #024158; border-radius: 10px; overflow: hidden; }
+    .inner-header { padding: 25px 30px 15px; text-align: center; background: linear-gradient(to bottom, #024158, #012c3b); }
+    .inner-header h1 { font-size: 18px; letter-spacing: 1px; margin-bottom: 20px; }
+    .city-search { display: inline-flex; align-items: center; background: #005c8a; border-radius: 25px; overflow: hidden; }
+    .city-search select { border: none; outline: none; padding: 10px 18px; background: transparent; color: #fff; font-size: 14px; min-width: 200px; }
+    .city-search option { color: #000; }
+    .city-search button { border: none; background: #013a52; color: #fff; padding: 10px 16px; font-size: 14px; cursor: pointer; }
+    .content { display: flex; padding: 20px 30px 30px; gap: 20px; }
+    .filters-column { width: 300px; height:300px; flex-shrink: 0; display: flex; flex-direction: column; gap: 20px; }
+    .results-column { flex: 1; display: flex; flex-direction: column; gap: 18px; }
+    .filter-box { background: #013549; border-radius: 10px; padding: 15px 18px; }
+    .filter-title { text-align: center; font-size: 16px; margin-bottom: 12px; border-bottom: 1px solid #0f607e; padding-bottom: 6px; }
+    .toggle-btn { width: 100%; padding: 8px 10px; border-radius: 20px; border: 1px solid #0f607e; background: #024d68; color: #ffffff; font-size: 13px; font-weight: bold; cursor: pointer; transition: 0.2s; margin-top: 5px; }
+    .toggle-btn:hover { background: #036488; transform: translateY(-1px); }
+    .pill-list { display: none; flex-direction: column; gap: 8px; margin-top: 10px; }
+    .pill-btn { width: 100%; padding: 8px 10px; border-radius: 20px; border: none; background: #b0d7e8; color: #033142; font-size: 13px; font-weight: bold; text-align: center; cursor: pointer; transition: 0.2s; box-shadow: 0 1px 2px rgba(0, 0, 0, 0.25); display: block; user-select: none; }
+    .pill-btn:hover { background: #91c3d8; transform: translateY(-1px); }
+    .pill-btn input { display: none; }
+    .pill-btn.active { background: #4db6d3; color: #ffffff; transform: translateY(-1px); }
+    .sort-row { display: flex; justify-content: flex-end; align-items: center; margin-bottom: 5px; font-size: 13px; gap: 8px; }
+    .sort-select { background: #013549; border-radius: 18px; padding: 6px 10px; border: 1px solid #0f607e; font-size: 12px; color: #fff; outline: none; cursor: pointer; }
+    .hotel-card { display: flex; background: #013549; border-radius: 10px; overflow: hidden; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.35); }
+    .hotel-image { width: 220px; height: 160px; object-fit: cover; }
+    .hotel-info { padding: 14px 16px; flex: 1; display: flex; flex-direction: column; justify-content: space-between; }
+    .hotel-title { font-size: 16px; margin-bottom: 4px; }
+    .hotel-price { font-size: 12px; margin-bottom: 6px; opacity: 0.85; }
+    .hotel-stars { font-size: 14px; margin-bottom: 10px; }
+    .hotel-bottom-row { display: flex; justify-content: flex-start; align-items: center; gap: 10px; }
+    .more-info-btn { padding: 6px 14px; border-radius: 18px; border: none; background: #b0d7e8; color: #033142; font-size: 12px; font-weight: bold; cursor: pointer; transition: 0.2s; text-decoration: none; }
+    .more-info-btn:hover { background: #91c3d8; transform: translateY(-1px); }
 </style>
 </head>
 
 <body>
+  <?php include 'navbar.html'; ?>
+  <br><br><br><br>
 
-<?php include 'navbar.html'; ?>
-<br><br><br>
+  <div class="page-wrapper">
+    <div class="inner-header">
+      <h1>SEARCH BY CITY AND FILTER TO DISCOVER THE BEST HOTEL DEALS</h1>
 
-<div class="page-wrapper">
-<div class="inner-header">
-<h1>SEARCH BY CITY AND FILTER</h1>
+      <form method="post" action="search.php">
+        <div class="city-search">
+          <select name="city" required>
+            <option value="">Select a city</option>
+            <?php foreach ($cities as $city): ?>
+              <option value="<?php echo htmlspecialchars($city); ?>"
+                <?php if ($city == $selected_city) echo 'selected'; ?>>
+                <?php echo htmlspecialchars($city); ?>
+              </option>
+            <?php endforeach; ?>
+          </select>
+          <button type="submit">Search</button>
+        </div>
+    </div>
 
-<form method="post" action="search.php">
+    <div class="content">
+      <div class="filters-column">
+        <div class="filter-box">
+          <div class="filter-title">Hotel Features</div>
+          <button type="button" class="toggle-btn" data-label="Choose hotel features">Choose hotel features</button>
 
-<div class="city-search">
-<select name="city" required>
-<option value="">Select city</option>
-<?php foreach ($cities as $city): ?>
-<option value="<?php echo htmlspecialchars($city); ?>"
-<?php if ($city == $selected_city) echo 'selected'; ?>>
-<?php echo htmlspecialchars($city); ?>
-</option>
-<?php endforeach; ?>
-</select>
-<button type="submit">Search</button>
+          <div class="pill-list">
+            <?php foreach ($hotelFeatures as $hf): ?>
+              <label class="pill-btn feature-button">
+                <?php echo htmlspecialchars($hf['feature_name']); ?>
+                <input
+                  type="checkbox"
+                  name="hotel_features[]"
+                  value="<?php echo (int)$hf['feature_id']; ?>"
+                  <?php if (in_array((string)$hf['feature_id'], array_map('strval', $selectedHotelFeat))) echo 'checked'; ?>
+                >
+              </label>
+            <?php endforeach; ?>
+          </div>
+        </div>
+
+        <div class="filter-box">
+          <div class="filter-title">Room Features</div>
+          <button type="button" class="toggle-btn" data-label="Choose room features">Choose room features</button>
+
+          <div class="pill-list">
+            <?php foreach ($roomFeatures as $rf): ?>
+              <label class="pill-btn feature-button">
+                <?php echo htmlspecialchars($rf['featurer_name']); ?>
+                <input
+                  type="checkbox"
+                  name="room_features[]"
+                  value="<?php echo (int)$rf['featurer_id']; ?>"
+                  <?php if (in_array((string)$rf['featurer_id'], array_map('strval', $selectedRoomFeat))) echo 'checked'; ?>
+                >
+              </label>
+            <?php endforeach; ?>
+          </div>
+        </div>
+      </div>
+
+      <div class="results-column">
+        <div class="sort-row">
+          <span>Sort By:</span>
+          <select class="sort-select" name="sort" onchange="this.form.submit()">
+            <option value="recommended" <?php if ($sort=='recommended') echo 'selected'; ?>>Recommended</option>
+            <option value="price_asc" <?php if ($sort=='price_asc') echo 'selected'; ?>>Price: Low to High</option>
+            <option value="price_desc" <?php if ($sort=='price_desc') echo 'selected'; ?>>Price: High to Low</option>
+            <option value="rating" <?php if ($sort=='rating') echo 'selected'; ?>>Rating</option>
+          </select>
+        </div>
+
+        <?php if ($selected_city === ''): ?>
+          <p>Please select a city to see available hotels.</p>
+        <?php else: ?>
+          <h3>Hotels in "<?php echo htmlspecialchars($selected_city); ?>"</h3><br>
+
+          <?php if (empty($hotels)): ?>
+            <p>No hotels found with these filters.</p>
+          <?php else: ?>
+            <?php foreach ($hotels as $hotel): ?>
+              <div class="hotel-card">
+                <?php
+                  $imagePath = (!empty($hotel['image'])) ? htmlspecialchars($hotel['image']) : 'images/hotel.png';
+                ?>
+                <img src="<?php echo $imagePath; ?>" alt="Hotel" class="hotel-image">
+
+                <div class="hotel-info">
+                  <div>
+                    <div class="hotel-title"><?php echo htmlspecialchars($hotel['hotel_name']); ?></div>
+                    <div class="hotel-price">FROM <?php echo number_format($hotel['base_price'], 2); ?>$ /NIGHT</div>
+                    <div class="hotel-stars">Rating: <?php echo htmlspecialchars($hotel['rating']); ?></div>
+                  </div>
+
+                 <div class="hotel-bottom-row">
+  <button
+    type="submit"
+    name="hotel_id"
+    value="<?php echo (int)$hotel['hotel_id']; ?>"
+    class="more-info-btn"
+    formmethod="post"
+    formaction="info.php"
+  >
+    Show more info
+  </button>
 </div>
-</div>
+                </div>
+              </div>
+            <?php endforeach; ?>
+          <?php endif; ?>
+        <?php endif; ?>
+      </div>
+    </div> <!-- end .content -->
 
-<div class="content">
+    </form>
+  </div>
 
-<div class="filters-column">
+  <?php include 'footer.html'; ?>
 
-<div class="filter-box">
-<div class="filter-title">Hotel Features</div>
-<button type="button" class="toggle-btn">Choose</button>
-<div class="pill-list">
-<?php foreach ($hotelFeatures as $hf): ?>
-<label class="pill-btn">
-<?php echo htmlspecialchars($hf['feature_name']); ?>
-<input type="checkbox" name="hotel_features[]"
-value="<?php echo (int)$hf['feature_id']; ?>"
-<?php if (in_array((string)$hf['feature_id'], array_map('strval',$selectedHotelFeat))) echo 'checked'; ?>>
-</label>
-<?php endforeach; ?>
-</div>
-</div>
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      document.querySelectorAll(".toggle-btn").forEach(function (btn) {
+        var defaultLabel = btn.getAttribute("data-label") || btn.textContent.trim();
+        btn.textContent = defaultLabel;
 
-<div class="filter-box">
-<div class="filter-title">Room Features</div>
-<button type="button" class="toggle-btn">Choose</button>
-<div class="pill-list">
-<?php foreach ($roomFeatures as $rf): ?>
-<label class="pill-btn">
-<?php echo htmlspecialchars($rf['featurer_name']); ?>
-<input type="checkbox" name="room_features[]"
-value="<?php echo (int)$rf['featurer_id']; ?>"
-<?php if (in_array((string)$rf['featurer_id'], array_map('strval',$selectedRoomFeat))) echo 'checked'; ?>>
-</label>
-<?php endforeach; ?>
-</div>
-</div>
+        btn.addEventListener("click", function () {
+          var list = btn.nextElementSibling;
+          if (!list) return;
 
-</div>
-
-<div class="results-column">
-
-<div class="sort-row">
-<select name="sort" class="sort-select" onchange="this.form.submit()">
-<option value="recommended" <?php if($sort=='recommended')echo'selected';?>>Recommended</option>
-<option value="price_asc" <?php if($sort=='price_asc')echo'selected';?>>Price ↑</option>
-<option value="price_desc" <?php if($sort=='price_desc')echo'selected';?>>Price ↓</option>
-<option value="rating" <?php if($sort=='rating')echo'selected';?>>Rating</option>
-</select>
-</div>
-
-<?php if ($selected_city == ''): ?>
-<p>Please select a city.</p>
-<?php elseif (empty($hotels)): ?>
-<p>No hotels found.</p>
-<?php else: ?>
-<?php foreach ($hotels as $hotel): ?>
-<div class="hotel-card">
-<img src="<?php echo htmlspecialchars($hotel['image'] ?: 'images/hotel.png'); ?>" class="hotel-image">
-<div class="hotel-info">
-<h3><?php echo htmlspecialchars($hotel['hotel_name']); ?></h3>
-<p>From <?php echo number_format($hotel['base_price'],2); ?> $ / night</p>
-<p>Rating: <?php echo htmlspecialchars($hotel['rating']); ?></p>
-<a href="info.php?hotel_id=<?php echo (int)$hotel['hotel_id']; ?>" class="more-info-btn">
-More info
-</a>
-</div>
-</div>
-<?php endforeach; ?>
-<?php endif; ?>
-
-</div>
-</div>
-
-</form>
-</div>
-
-<?php include 'footer.html'; ?>
-
-<script>
-document.querySelectorAll('.toggle-btn').forEach(btn=>{
-  btn.onclick=()=>{ 
-    let list=btn.nextElementSibling;
-    list.style.display=list.style.display==='flex'?'none':'flex';
-  };
-});
-</script>
-
+          if (list.style.display === "none" || list.style.display === "") {
+            list.style.display = "flex";
+            btn.textContent = "Hide " + defaultLabel.toLowerCase();
+          } else {
+            list.style.display = "none";
+            btn.textContent = defaultLabel;
+          }
+        });
+      });
+    });
+  </script>
 </body>
 </html>
