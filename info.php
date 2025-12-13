@@ -350,6 +350,7 @@ if ($resultFeat) {
     }
 
     .room-title {
+      color:#153649;
       font-size: 20px;
       font-weight: 600;
       margin-bottom: 6px;
@@ -558,7 +559,7 @@ $imagePath = (!empty($hotel['image']))
       </div>
 
       <div class="room-details-card">
-        <h3 class="room-title"><?php echo htmlspecialchars($room['room_type']); ?></h3>
+        <h3 class="room-title"><u><?php echo htmlspecialchars($room['room_type']); ?></u></h3>
         <p class="room-meta"><?php echo (int)$room['capacity']; ?> guests</p>
 
         <div class="room-list">
