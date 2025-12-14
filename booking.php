@@ -41,15 +41,30 @@ $error_msg   = "";
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     // user_id من السيشن (عدّليه حسب نظامك)
-    $user_id = $_SESSION['user_id'] ?? 1; // مؤقتاً 1 إذا ما عندك login جاهز
+   $user_id = isset($_SESSION['user_id']) ? $_SESSION['user_id'] : 1;
+ // مؤقتاً 1 إذا ما عندك login جاهز
 
-    $checkin        = $_POST['checkin'] ?? null;
-    $checkout       = $_POST['checkout'] ?? null;
-    $guests         = isset($_POST['guests']) ? (int)$_POST['guests'] : 0;
-    $first_name     = trim($_POST['first_name'] ?? '');
-    $last_name      = trim($_POST['last_name'] ?? '');
-    $email          = trim($_POST['email'] ?? '');
-    $payment_method = $_POST['payment_method'] ?? null;
+   $checkin  = isset($_POST['checkin']) ? $_POST['checkin'] : null;
+$checkout = isset($_POST['checkout']) ? $_POST['checkout'] : null;
+
+$guests = isset($_POST['guests']) ? (int) $_POST['guests'] : 0;
+
+$first_name = isset($_POST['first_name']) 
+    ? trim($_POST['first_name']) 
+    : '';
+
+$last_name = isset($_POST['last_name']) 
+    ? trim($_POST['last_name']) 
+    : '';
+
+$email = isset($_POST['email']) 
+    ? trim($_POST['email']) 
+    : '';
+
+$payment_method = isset($_POST['payment_method']) 
+    ? $_POST['payment_method'] 
+    : null;
+
 
     // تحقق بسيط
     if (
