@@ -28,10 +28,6 @@ $result = $stmt->get_result();
 $room = $result->fetch_assoc();
 $stmt->close();
 
-if (!$room) {
-    $conn->close();
-    die("Room not found.");
-}
 
 // متغيّرات لرسالة نجاح/خطأ
 $success_msg = "";
