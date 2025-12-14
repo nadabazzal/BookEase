@@ -1,11 +1,11 @@
 <?php
-
 session_start();
 
 /* ===================== DB CONNECT ===================== */
-$conn = new mysqli('localhost', 'root', '', 'hotel_management_system');
-if ($conn->connect_error) {
-    die("Connection failed: " . $conn->connect_error);
+
+$conn = mysqli_connect("localhost", "root", "", "hotel_management_system");
+if (!$conn) {
+    die("connection failed: " . mysqli_connect_error());
 }
 
 /* ===================== MESSAGES ===================== */
@@ -18,337 +18,359 @@ $hotelMessage  = "";
 $roomMessage   = "";
 $manageMessage = "";
 
-/* ===================== STATE ===================== */
-$filter       = $_GET['date_filter']   ?? 'today';
-$statusFilter = $_GET['status_filter'] ?? 'main';   // main / pending / confirmed / cancelled
+
+
+/* ===================== STATE  ===================== */
+if (!isset($_SESSION['date_filter'])) {
+    $_SESSION['date_filter'] = 'today';
+}
+if (!isset($_SESSION['status_filter'])) {
+    $_SESSION['status_filter'] = 'main'; // main / pending / confirmed / cancelled
+}
+
+$filter       = $_SESSION['date_filter'];
+$statusFilter = $_SESSION['status_filter'];
 
 $hotelToEdit = null;
 
-/* ===================== HELPERS ===================== */
-function go($url) {
-    header("Location: $url");
-    exit;
-}
-
-function safeUpperName($fn, $ln) {
-    return strtoupper(trim($fn . ' ' . $ln));
-}
-
 /* ===================== POST ACTIONS ===================== */
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $action = $_POST['action'] ?? '';
+$action = isset($_POST['action']) ? $_POST['action'] : '';
+
+    /* ---------- SET DATE FILTER (POST) ---------- */
+    if ($action === 'set_date_filter') {
+        $df = isset($_POST['date_filter']) ? $_POST['date_filter'] : 'today';
+
+       
+        $_SESSION['date_filter'] = $df;
+    }
+
+    /* ---------- SET STATUS FILTER (POST) ---------- */
+    if ($action === 'set_status_filter') {
+$sf = isset($_POST['status_filter']) ? $_POST['status_filter'] : 'main';
+       
+        $_SESSION['status_filter'] = $sf;
+    }
 
     /* ---------- UPDATE BOOKING STATUS ---------- */
     if ($action === 'update_status' && isset($_POST['booking_id'], $_POST['new_status'])) {
         $booking_id = (int)$_POST['booking_id'];
         $new_status = $_POST['new_status'];
 
-        $allowed = ['pending','confirmed','cancelled'];
 
-        if ($booking_id > 0 && in_array($new_status, $allowed, true)) {
-            $stmt = $conn->prepare("UPDATE booking SET status = ? WHERE booking_id = ?");
-            if ($stmt) {
-                $stmt->bind_param("si", $new_status, $booking_id);
-                if ($stmt->execute()) {
-                    // رجّع على نفس الفلاتر (من navbar)
-                    go("admin.php?date_filter=" . urlencode($filter) . "&status_filter=" . urlencode($new_status));
-                } else {
-                    $statusError = "Error updating booking: " . $stmt->error;
-                }
-                $stmt->close();
-            } else {
-                $statusError = "Error preparing update: " . $conn->error;
-            }
-        } else {
-            $statusError = "Invalid booking or status.";
-        }
+       if ($booking_id > 0) {
+
+    $ns = mysqli_real_escape_string($conn, $new_status);
+
+    $sql = "UPDATE booking SET status = '$ns' WHERE booking_id = $booking_id";
+    $result = mysqli_query($conn, $sql);
+
+    if ($result) {
+        $_SESSION['status_filter'] = $new_status;
+    } else {
+        $statusError = "Error updating booking: " . mysqli_error($conn);
+    }
+
+} else {
+    $statusError = "Invalid booking or status.";
+}
+
     }
 
     /* ---------- ADD HOTEL ---------- */
     if ($action === 'add_hotel') {
-        $hotel_name   = trim($_POST['hotel_name'] ?? '');
-        $description  = trim($_POST['description'] ?? '');
-        $rating       = ($_POST['rating'] !== '') ? (float)$_POST['rating'] : 0;
-        $is_sponsored = isset($_POST['is_sponsored']) ? 1 : 0;
-        $country      = trim($_POST['country'] ?? '');
-        $city         = trim($_POST['city'] ?? '');
-        $base_price   = ($_POST['base_price'] !== '') ? (float)$_POST['base_price'] : 0;
-        $hotel_status = $_POST['hotel_status'] ?? 'pending';
+        $hotel_name   = isset($_POST['hotel_name']) ? trim($_POST['hotel_name']) : '';
+$description  = isset($_POST['description']) ? trim($_POST['description']) : '';
+$rating       = (isset($_POST['rating']) && $_POST['rating'] !== '') ? (float)$_POST['rating'] : 0;
+$country      = isset($_POST['country']) ? trim($_POST['country']) : '';
+$city         = isset($_POST['city']) ? trim($_POST['city']) : '';
+$base_price   = (isset($_POST['base_price']) && $_POST['base_price'] !== '') ? (float)$_POST['base_price'] : 0;
+$hotel_status = isset($_POST['hotel_status']) ? $_POST['hotel_status'] : 'pending';
 
-        // upload image
-        $imagePath = null;
-        if (isset($_FILES['hotel_image']) && $_FILES['hotel_image']['error'] === UPLOAD_ERR_OK) {
-            $uploadDir = 'images/';
-            if (!is_dir($uploadDir)) {
-                mkdir($uploadDir, 0777, true);
-            }
-            $origName = basename($_FILES['hotel_image']['name']);
-            $safeName = time() . '_' . preg_replace('/[^a-zA-Z0-9_\-\.]/', '', $origName);
-            $target   = $uploadDir . $safeName;
 
-            if (move_uploaded_file($_FILES['hotel_image']['tmp_name'], $target)) {
-                $imagePath = $target;
-            } else {
-                $hotelError = "Error uploading hotel image.";
-            }
+        if (!in_array($hotel_status, ['pending','approved','rejected'], true)) {
+            $hotel_status = 'pending';
         }
+
+       // upload image
+$imagePath = '';
+
+if (isset($_FILES['hotel_image']) && $_FILES['hotel_image']['error'] == 0) {
+
+    if (!is_dir('images')) {
+        mkdir('images');
+    }
+
+    $imagePath = 'images/' . time() . '_' . $_FILES['hotel_image']['name'];
+
+    if (!move_uploaded_file($_FILES['hotel_image']['tmp_name'], $imagePath)) {
+        $hotelError = "Error uploading hotel image.";
+        $imagePath = '';
+    }
+}
+
 
         if ($hotel_name === '' || $country === '' || $city === '') {
             $hotelError = "Please fill hotel name, country and city.";
         }
 
         if ($hotelError === "") {
-            $sql = "
-                INSERT INTO hotels
-                (hotel_name, description, rating, is_sponsored, created_at, country, city, base_price, status, image)
-                VALUES
-                (?, ?, ?, ?, NOW(), ?, ?, ?, ?, ?)
-            ";
-            $stmt = $conn->prepare($sql);
-            if ($stmt) {
-                // s s d i s s d s s  => 9
-                $stmt->bind_param(
-                    "ssdissdss",
-                    $hotel_name,
-                    $description,
-                    $rating,
-                    $is_sponsored,
-                    $country,
-                    $city,
-                    $base_price,
-                    $hotel_status,
-                    $imagePath
-                );
 
-                if ($stmt->execute()) {
-                    $hotelMessage = "New hotel added successfully ✅";
-                } else {
-                    $hotelError = "Error inserting hotel: " . $stmt->error;
-                }
-                $stmt->close();
-            } else {
-                $hotelError = "Error preparing hotel insert: " . $conn->error;
-            }
-        }
+    $hn = mysqli_real_escape_string($conn, $hotel_name);
+    $ds = mysqli_real_escape_string($conn, $description);
+    $ct = mysqli_real_escape_string($conn, $country);
+    $cy = mysqli_real_escape_string($conn, $city);
+    $hs = mysqli_real_escape_string($conn, $hotel_status);
+
+    if ($imagePath != '') {
+        $imgSql = "'" . mysqli_real_escape_string($conn, $imagePath) . "'";
+    } else {
+        $imgSql = "NULL";
+    }
+
+    $sql = "
+        INSERT INTO hotels
+        (hotel_name, description, rating, created_at, country, city, base_price, status, image)
+        VALUES
+        ('$hn', '$ds', $rating,  NOW(), '$ct', '$cy', $base_price, '$hs', $imgSql)
+    ";
+
+    if (mysqli_query($conn, $sql)) {
+        $hotelMessage = "New hotel added successfully ✅";
+    } else {
+        $hotelError = "Error inserting hotel: " . mysqli_error($conn);
+    }
+}
+
     }
 
     /* ---------- ADD ROOM ---------- */
     if ($action === 'add_room') {
-        $hotel_id  = (int)($_POST['hotel_id'] ?? 0);
-        $room_nb   = (int)($_POST['room_nb'] ?? 0);
-        $room_type = trim($_POST['room_type'] ?? '');
-        $price     = ($_POST['price'] !== '') ? (float)$_POST['price'] : 0;
-        $capacity  = (int)($_POST['capacity'] ?? 1);
-        $status    = $_POST['room_status'] ?? 'available';
+       $hotel_id  = isset($_POST['hotel_id']) ? (int)$_POST['hotel_id'] : 0;
+$room_nb   = isset($_POST['room_nb']) ? (int)$_POST['room_nb'] : 0;
+$room_type = isset($_POST['room_type']) ? trim($_POST['room_type']) : '';
+$price     = (isset($_POST['price']) && $_POST['price'] !== '') ? (float)$_POST['price'] : 0;
+$capacity  = isset($_POST['capacity']) ? (int)$_POST['capacity'] : 1;
+$status    = isset($_POST['room_status']) ? $_POST['room_status'] : 'available';
+
+
+        if (!in_array($status, ['available','booked'], true)) {
+            $status = 'available';
+        }
 
         if ($hotel_id <= 0 || $room_nb <= 0 || $room_type === '') {
             $roomError = "Please choose a hotel and fill room number & type.";
         } else {
-            $stmt = $conn->prepare("
-                INSERT INTO rooms (hotel_id, price, capacity, status, room_nb, room_type)
-                VALUES (?, ?, ?, ?, ?, ?)
-            ");
-            if ($stmt) {
-                // i d i s i s
-                $stmt->bind_param("idisis", $hotel_id, $price, $capacity, $status, $room_nb, $room_type);
+           $rt = mysqli_real_escape_string($conn, $room_type);
+$st = mysqli_real_escape_string($conn, $status);
 
-                if ($stmt->execute()) {
-                    $roomMessage = "New room added successfully ✅";
-                } else {
-                    $roomError = "Error inserting room: " . $stmt->error;
-                }
-                $stmt->close();
-            } else {
-                $roomError = "Error preparing room insert: " . $conn->error;
-            }
+
+           $sql = "
+    INSERT INTO rooms (hotel_id, price, capacity, status, room_nb, room_type)
+    VALUES ($hotel_id, $price, $capacity, '$st', $room_nb, '$rt')
+";
+
+$result = mysqli_query($conn, $sql);
+
+if ($result) {
+    $roomMessage = "New room added successfully ✅";
+} else {
+    $roomError = "Error inserting room: " . mysqli_error($conn);
+}
+
         }
     }
 
     /* ---------- LOAD HOTEL TO EDIT ---------- */
     if ($action === 'load_hotel') {
-        $hid = (int)($_POST['hotel_id'] ?? 0);
+$hid = isset($_POST['hotel_id']) ? (int)$_POST['hotel_id'] : 0;
+
         if ($hid <= 0) {
             $manageError = "Please choose a hotel to load.";
-        } else {
-            $stmt = $conn->prepare("SELECT * FROM hotels WHERE hotel_id = ?");
-            if ($stmt) {
-                $stmt->bind_param("i", $hid);
-                $stmt->execute();
-                $res = $stmt->get_result();
-                if ($res && $res->num_rows === 1) {
-                    $hotelToEdit = $res->fetch_assoc();
-                } else {
-                    $manageError = "Hotel not found.";
-                }
-                $stmt->close();
+        } else {    $sql    = "SELECT * FROM hotels WHERE hotel_id = $hid";
+
+              $res = mysqli_query($conn, $sql);
+if ($res && mysqli_num_rows($res) === 1) {
+
+        $hotelToEdit = mysqli_fetch_assoc($res);
+            
             } else {
-                $manageError = "Error loading hotel: " . $conn->error;
+                $manageError = "Hotel not found.";
             }
         }
     }
 
     /* ---------- UPDATE HOTEL ---------- */
     if ($action === 'update_hotel') {
-        $hid = (int)($_POST['hotel_id'] ?? 0);
+       $hid = isset($_POST['hotel_id']) ? (int)$_POST['hotel_id'] : 0;
 
-        $hotel_name   = trim($_POST['hotel_name'] ?? '');
-        $description  = trim($_POST['description'] ?? '');
-        $rating       = ($_POST['rating'] !== '') ? (float)$_POST['rating'] : 0;
-        $is_sponsored = isset($_POST['is_sponsored']) ? 1 : 0;
-        $country      = trim($_POST['country'] ?? '');
-        $city         = trim($_POST['city'] ?? '');
-        $base_price   = ($_POST['base_price'] !== '') ? (float)$_POST['base_price'] : 0;
-        $hotel_status = $_POST['hotel_status'] ?? 'pending';
+$hotel_name   = isset($_POST['hotel_name']) ? trim($_POST['hotel_name']) : '';
+$description  = isset($_POST['description']) ? trim($_POST['description']) : '';
+$rating       = (isset($_POST['rating']) && $_POST['rating'] !== '') ? (float)$_POST['rating'] : 0;
+$country      = isset($_POST['country']) ? trim($_POST['country']) : '';
+$city         = isset($_POST['city']) ? trim($_POST['city']) : '';
+$base_price   = (isset($_POST['base_price']) && $_POST['base_price'] !== '') ? (float)$_POST['base_price'] : 0;
+$hotel_status = isset($_POST['hotel_status']) ? $_POST['hotel_status'] : 'pending';
+
+
+        if (!in_array($hotel_status, ['pending','approved','rejected'], true)) {
+            $hotel_status = 'pending';
+        }
 
         if ($hid <= 0) {
             $manageError = "Invalid hotel.";
         } elseif ($hotel_name === '' || $country === '' || $city === '') {
             $manageError = "Please fill hotel name, country and city.";
         } else {
-            $stmt = $conn->prepare("
-                UPDATE hotels
-                SET hotel_name=?, description=?, rating=?, is_sponsored=?, country=?, city=?, base_price=?, status=?
-                WHERE hotel_id=?
-            ");
-            if ($stmt) {
-                // s s d i s s d s i
-                $stmt->bind_param("ssdissdsi",
-                    $hotel_name, $description, $rating, $is_sponsored, $country, $city, $base_price, $hotel_status, $hid
-                );
+            $hn = mysqli_real_escape_string($conn, $hotel_name);
+$ds = mysqli_real_escape_string($conn, $description);
+$ct = mysqli_real_escape_string($conn, $country);
+$cy = mysqli_real_escape_string($conn, $city);
+$hs = mysqli_real_escape_string($conn, $hotel_status);
 
-                if ($stmt->execute()) {
-                    go("admin.php");
-                } else {
-                    $manageError = "Error updating hotel: " . $stmt->error;
-                }
-                $stmt->close();
-            } else {
-                $manageError = "Error preparing hotel update: " . $conn->error;
-            }
+
+            $sql = "
+                UPDATE hotels
+                SET hotel_name='$hn',
+                    description='$ds',
+                    rating=$rating,
+                    country='$ct',
+                    city='$cy',
+                    base_price=$base_price,
+                    status='$hs'
+                WHERE hotel_id=$hid
+            ";
+
+            $result = mysqli_query($conn, $sql);
+
+if ($result) {
+    $manageMessage = "Hotel updated successfully ✅";
+} else {
+    $manageError = "Error updating hotel: " . mysqli_error($conn);
+}
+
         }
     }
 
     /* ---------- DELETE HOTEL (with children) ---------- */
     if ($action === 'delete_hotel') {
-        $hid = (int)($_POST['hotel_id'] ?? 0);
+$hid = isset($_POST['hotel_id']) ? (int)$_POST['hotel_id'] : 0;
 
         if ($hid <= 0) {
             $manageError = "Invalid hotel to delete.";
         } else {
-            $conn->begin_transaction();
-            try {
+
+
+    
+
                 // rooms ids for this hotel
                 $roomIds = [];
-                $stmt = $conn->prepare("SELECT room_id FROM rooms WHERE hotel_id = ?");
-                $stmt->bind_param("i", $hid);
-                $stmt->execute();
-                $res = $stmt->get_result();
-                while ($row = $res->fetch_assoc()) {
-                    $roomIds[] = (int)$row['room_id'];
+                 $sql    = "SELECT room_id FROM rooms WHERE hotel_id = $hid";
+    $res = mysqli_query($conn, $sql);
+                if ($res) {
+                    while ($row = mysqli_fetch_assoc($res)) {
+                        $roomIds[] = (int)$row['room_id'];
+                    }
                 }
-                $stmt->close();
 
                 if (!empty($roomIds)) {
-                    $in = implode(',', array_fill(0, count($roomIds), '?'));
-                    $types = str_repeat('i', count($roomIds));
+                    $in = implode(',', $roomIds);
 
                     // delete bookings
-                    $sql = "DELETE FROM booking WHERE room_id IN ($in)";
-                    $stmt = $conn->prepare($sql);
-                    $stmt->bind_param($types, ...$roomIds);
-                    $stmt->execute();
-                    $stmt->close();
+                    $sql1    = "DELETE FROM booking WHERE room_id IN ($in)";
+    $res1 = mysqli_query($conn, $sql1);
 
                     // optional tables if exist
-                    if ($conn->query("SHOW TABLES LIKE 'room_images'")->num_rows > 0) {
-                        $sql = "DELETE FROM room_images WHERE room_id IN ($in)";
-                        $stmt = $conn->prepare($sql);
-                        $stmt->bind_param($types, ...$roomIds);
-                        $stmt->execute();
-                        $stmt->close();
-                    }
+                   $sql2 = "SHOW TABLES LIKE 'room_images'";
+$t = mysqli_query($conn, $sql2);
 
-                    if ($conn->query("SHOW TABLES LIKE 'rooms_feature_map'")->num_rows > 0) {
-                        $sql = "DELETE FROM rooms_feature_map WHERE room_id IN ($in)";
-                        $stmt = $conn->prepare($sql);
-                        $stmt->bind_param($types, ...$roomIds);
-                        $stmt->execute();
-                        $stmt->close();
-                    }
+if ($t && mysqli_num_rows($t) > 0) {
+    $sql2 = "DELETE FROM room_images WHERE room_id IN ($in)";
+    mysqli_query($conn, $sql2);
+}
+$sql3 = "SHOW TABLES LIKE 'rooms_feature_map'";
+$t = mysqli_query($conn, $sql3);
+
+if ($t && mysqli_num_rows($t) > 0) {
+    $sql4 = "DELETE FROM rooms_feature_map WHERE room_id IN ($in)";
+    mysqli_query($conn, $sql4);
+}
+
 
                     // delete rooms
-                    $stmt = $conn->prepare("DELETE FROM rooms WHERE hotel_id = ?");
-                    $stmt->bind_param("i", $hid);
-                    $stmt->execute();
-                    $stmt->close();
+$sql5 = "DELETE FROM rooms WHERE hotel_id = $hid";
+$t = mysqli_query($conn, $sql5);
                 }
 
                 // optional favorites
-                if ($conn->query("SHOW TABLES LIKE 'favorites'")->num_rows > 0) {
-                    $stmt = $conn->prepare("DELETE FROM favorites WHERE hotel_id = ?");
-                    $stmt->bind_param("i", $hid);
-                    $stmt->execute();
-                    $stmt->close();
-                }
+$sql6 = "SHOW TABLES LIKE 'favorites'";
+$t = mysqli_query($conn, $sql6);
+
+if ($t && mysqli_num_rows($t) > 0) {
+    $sql7 = "DELETE FROM favorites WHERE hotel_id = $hid";
+    mysqli_query($conn, $sql7);
+}
+
 
                 // delete hotel
-                $stmt = $conn->prepare("DELETE FROM hotels WHERE hotel_id = ?");
-                $stmt->bind_param("i", $hid);
-                $stmt->execute();
-                $stmt->close();
+$sql8 = "DELETE FROM hotels WHERE hotel_id = $hid";
+$t = mysqli_query($conn, $sql8);
 
-                $conn->commit();
-                go("admin.php");
+                if ($t) {
+                    $manageMessage = "Hotel and all associated data deleted successfully ✅";
+                } else {
+                    $manageError = "Error deleting hotel: " . mysqli_error($conn);
+                }
 
-            } catch (Exception $e) {
-                $conn->rollback();
-                $manageError = "Error deleting hotel: " . $e->getMessage();
-            }
+
+         
         }
     }
 }
 
-/* ===================== BOOKINGS WHERE ===================== */
-$whereParts = [];
+$whereParts = array();
 $filterLabel = "today";
 
-switch ($filter) {
-    case 'tomorrow':
-        $whereParts[] = "b.check_in = CURDATE() + INTERVAL 1 DAY";
-        $filterLabel = "tomorrow";
-        break;
-    case 'week':
-        $whereParts[] = "b.check_in BETWEEN CURDATE() AND CURDATE() + INTERVAL 6 DAY";
-        $filterLabel = "this week";
-        break;
-    case 'today':
-    default:
-        $whereParts[] = "b.check_in = CURDATE()";
-        $filterLabel = "today";
-        $filter = "today";
-        break;
+if ($filter == 'tomorrow') {
+
+    $whereParts[] = "b.check_in = CURDATE() + INTERVAL 1 DAY";
+    $filterLabel = "tomorrow";
+
+} elseif ($filter == 'week') {
+
+    $whereParts[] = "b.check_in BETWEEN CURDATE() AND CURDATE() + INTERVAL 6 DAY";
+    $filterLabel = "this week";
+
+} else {
+    // today (default)
+    $whereParts[] = "b.check_in = CURDATE()";
+    $filterLabel = "today";
+    $_SESSION['date_filter'] = "today";
+    $filter = "today";
 }
 
-switch ($statusFilter) {
-    case 'pending':
-        $whereParts[] = "b.status = 'pending'";
-        break;
-    case 'confirmed':
-        $whereParts[] = "b.status = 'confirmed'";
-        break;
-    case 'cancelled':
-        $whereParts[] = "b.status = 'cancelled'";
-        break;
-    case 'main':
-    default:
-        $statusFilter = 'main';
-        $whereParts[] = "b.status <> 'pending'";
-        break;
+if ($statusFilter == 'pending') {
+
+    $whereParts[] = "b.status = 'pending'";
+
+} elseif ($statusFilter == 'confirmed') {
+
+    $whereParts[] = "b.status = 'confirmed'";
+
+} elseif ($statusFilter == 'cancelled') {
+
+    $whereParts[] = "b.status = 'cancelled'";
+
+} else {
+    // main (default)
+    $_SESSION['status_filter'] = 'main';
+    $statusFilter = 'main';
+    $whereParts[] = "b.status <> 'pending'";
 }
+
 
 $whereSql = "WHERE " . implode(" AND ", $whereParts);
 
-/* ===================== READ BOOKINGS (IMPORTANT FIX) ===================== */
 $sqlBookings = "
     SELECT
         b.booking_id,
@@ -380,11 +402,15 @@ $sqlBookings = "
     ORDER BY b.check_in, b.created_at DESC
 ";
 
-$bookings = [];
-$res = $conn->query($sqlBookings);
-if ($res && $res->num_rows > 0) {
-    while ($row = $res->fetch_assoc()) $bookings[] = $row;
+$bookings = array();
+$res = mysqli_query($conn, $sqlBookings);
+
+if ($res) {
+    while ($row = mysqli_fetch_assoc($res)) {
+        $bookings[] = $row;
+    }
 }
+
 
 /* ===================== HEADER HOTEL INFO ===================== */
 $hotelName = "Reservations";
@@ -395,11 +421,17 @@ if (!empty($bookings)) {
 }
 
 /* ===================== HOTELS LIST for forms ===================== */
-$hotelsList = [];
-$resHotels = $conn->query("SELECT hotel_id, hotel_name, city, country FROM hotels ORDER BY hotel_name");
-if ($resHotels && $resHotels->num_rows > 0) {
-    while ($row = $resHotels->fetch_assoc()) $hotelsList[] = $row;
+$hotelsList = array();
+
+$sql = "SELECT hotel_id, hotel_name, city, country FROM hotels ORDER BY hotel_name";
+$resHotels = mysqli_query($conn, $sql);
+
+if ($resHotels) {
+    while ($row = mysqli_fetch_assoc($resHotels)) {
+        $hotelsList[] = $row;
+    }
 }
+
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -439,9 +471,13 @@ if ($resHotels && $resHotels->num_rows > 0) {
     .hotel-location{color:var(--text-muted);font-size:14px;text-align:right;}
     .hotel-name{font-size:20px;font-weight:600;font-style:italic;}
 
-    .hotel-nav{display:flex;gap:16px;font-size:13px;margin-bottom:12px;flex-wrap:wrap;}
-    .hotel-nav a{padding-bottom:2px;}
-    .hotel-nav a.active{color:var(--accent);text-decoration:underline;}
+    .hotel-nav{display:flex;gap:16px;font-size:13px;margin-bottom:12px;flex-wrap:wrap;align-items:center;}
+    .hotel-nav form{display:inline;}
+    .hotel-nav button{
+      padding-bottom:2px;background:none;border:none;color:inherit;cursor:pointer;
+      font-size:13px;
+    }
+    .hotel-nav button.active{color:var(--accent);text-decoration:underline;}
 
     .guest-list{list-style:none;}
     .guest-list li+li{margin-top:6px;}
@@ -513,39 +549,52 @@ if ($resHotels && $resHotels->num_rows > 0) {
   <?php if ($roomMessage):   ?><div class="alert alert-success"><?php echo htmlspecialchars($roomMessage); ?></div><?php endif; ?>
   <?php if ($manageMessage): ?><div class="alert alert-success"><?php echo htmlspecialchars($manageMessage); ?></div><?php endif; ?>
 
-  <!-- Date filter only -->
-  <form method="get" class="filters-row">
+  <!-- Date filter (POST ONLY) -->
+  <form method="post" class="filters-row">
+    <input type="hidden" name="action" value="set_date_filter">
     <label>Reservations for:</label>
     <select name="date_filter" onchange="this.form.submit()">
       <option value="today"    <?php if ($filter === 'today') echo 'selected'; ?>>today</option>
       <option value="tomorrow" <?php if ($filter === 'tomorrow') echo 'selected'; ?>>tomorrow</option>
       <option value="week"     <?php if ($filter === 'week') echo 'selected'; ?>>this week</option>
     </select>
-    <input type="hidden" name="status_filter" value="<?php echo htmlspecialchars($statusFilter); ?>">
   </form>
 
-  <!-- Reservations card + navbar status -->
+  <!-- Reservations card  -->
   <section class="hotel-card">
-    
 
     <nav class="hotel-nav">
-      <a href="admin.php?date_filter=<?php echo urlencode($filter); ?>&status_filter=main"
-         class="<?php echo ($statusFilter==='main')?'active':''; ?>">Reservations – <?php echo htmlspecialchars($filterLabel); ?></a>
+      <form method="post">
+        <input type="hidden" name="action" value="set_status_filter">
+        <input type="hidden" name="status_filter" value="main">
+        <button type="submit" class="<?php echo ($statusFilter==='main')?'active':''; ?>">
+          Reservations – <?php echo htmlspecialchars($filterLabel); ?>
+        </button>
+      </form>
 
-      <a href="admin.php?date_filter=<?php echo urlencode($filter); ?>&status_filter=pending"
-         class="<?php echo ($statusFilter==='pending')?'active':''; ?>">Pending</a>
+      <form method="post">
+        <input type="hidden" name="action" value="set_status_filter">
+        <input type="hidden" name="status_filter" value="pending">
+        <button type="submit" class="<?php echo ($statusFilter==='pending')?'active':''; ?>">Pending</button>
+      </form>
 
-      <a href="admin.php?date_filter=<?php echo urlencode($filter); ?>&status_filter=confirmed"
-         class="<?php echo ($statusFilter==='confirmed')?'active':''; ?>">Confirmed</a>
+      <form method="post">
+        <input type="hidden" name="action" value="set_status_filter">
+        <input type="hidden" name="status_filter" value="confirmed">
+        <button type="submit" class="<?php echo ($statusFilter==='confirmed')?'active':''; ?>">Confirmed</button>
+      </form>
 
-      <a href="admin.php?date_filter=<?php echo urlencode($filter); ?>&status_filter=cancelled"
-         class="<?php echo ($statusFilter==='cancelled')?'active':''; ?>">Cancelled</a>
+      <form method="post">
+        <input type="hidden" name="action" value="set_status_filter">
+        <input type="hidden" name="status_filter" value="cancelled">
+        <button type="submit" class="<?php echo ($statusFilter==='cancelled')?'active':''; ?>">Cancelled</button>
+      </form>
     </nav>
 
     <?php if (!empty($bookings)): ?>
       <ul class="guest-list">
         <?php foreach ($bookings as $b): ?>
-          <li><?php echo htmlspecialchars(safeUpperName($b['guest_first_name'], $b['guest_last_name'])); ?></li>
+<li><?php echo strtoupper(htmlspecialchars(trim($b['guest_first_name'].' '.$b['guest_last_name']))); ?></li>
         <?php endforeach; ?>
       </ul>
     <?php else: ?>
@@ -571,9 +620,8 @@ if ($resHotels && $resHotels->num_rows > 0) {
 
         <div class="reservation-section-title">Reservation Info</div>
         <ul class="reservation-list">
-          <li>Reservation ID: <?php echo (int)$b['booking_id']; ?></li>
           <li>Hotel: <?php echo htmlspecialchars($b['hotel_name']); ?> (<?php echo htmlspecialchars($b['city']); ?>)</li>
-          <li>Room: #<?php echo htmlspecialchars($b['room_nb']); ?> – <?php echo htmlspecialchars($b['room_type']); ?></li>
+          <li>Room number: <?php echo htmlspecialchars($b['room_nb']); ?> – <?php echo htmlspecialchars($b['room_type']); ?></li>
           <li>Check-in: <?php echo $checkIn; ?></li>
           <li>Check-out: <?php echo $checkOut; ?></li>
           <li>Guests: <?php echo (int)$b['guests_no']; ?></li>
@@ -624,7 +672,6 @@ if ($resHotels && $resHotels->num_rows > 0) {
     <?php endforeach; ?>
   <?php endif; ?>
 
-
   <!-- ================== ADD NEW HOTEL ================== -->
   <section class="admin-section-card">
     <div class="admin-section-title">Add a New Hotel</div>
@@ -671,9 +718,6 @@ if ($resHotels && $resHotels->num_rows > 0) {
         <textarea name="description" placeholder="Short description"></textarea>
       </div>
 
-      <div class="admin-check">
-        <label><input type="checkbox" name="is_sponsored"> Sponsored hotel (featured)</label>
-      </div>
 
       <div class="admin-group">
         <label>Hotel Main Image</label>
@@ -683,7 +727,6 @@ if ($resHotels && $resHotels->num_rows > 0) {
       <button type="submit" class="btn-primary-admin">Add Hotel</button>
     </form>
   </section>
-
 
   <!-- ================== ADD NEW ROOM ================== -->
   <section class="admin-section-card">
@@ -737,7 +780,6 @@ if ($resHotels && $resHotels->num_rows > 0) {
       <button type="submit" class="btn-primary-admin">Add Room</button>
     </form>
   </section>
-
 
   <!-- ================== MANAGE HOTELS ================== -->
   <section class="admin-section-card">
@@ -805,12 +847,7 @@ if ($resHotels && $resHotels->num_rows > 0) {
           <textarea name="description"><?php echo htmlspecialchars($hotelToEdit['description']); ?></textarea>
         </div>
 
-        <div class="admin-check">
-          <label>
-            <input type="checkbox" name="is_sponsored" <?php if (!empty($hotelToEdit['is_sponsored'])) echo 'checked'; ?>>
-            Sponsored hotel
-          </label>
-        </div>
+       
 
         <div class="admin-row">
           <div class="admin-group">

@@ -1,59 +1,53 @@
-<?php 
-
+<?php
 session_start();
 
-// 1) اتصال بالـ DB
-$conn = new mysqli('localhost', 'root', '', 'hotel_management_system');
-
-// 2) تحديد room_id (من GET أول مرة، أو من POST بعد ما ينعمل submit)
-$room_id = 0;
-if (isset($_GET['room_id'])) {
-    $room_id = (int) $_GET['room_id'];
-} elseif (isset($_POST['room_id'])) {
-    $room_id = (int) $_POST['room_id'];
+/* ===================== DB CONNECT ===================== */
+$conn = mysqli_connect("localhost", "root", "", "hotel_management_system");
+if (!$conn) {
+    die("connection failed: " . mysqli_connect_error());
 }
 
+/* ===================== GET room_id (POST ONLY) ===================== */
+$room_id = 0;
+if (isset($_POST['room_id'])) {
+    $room_id = (int)$_POST['room_id'];
+}
+if ($room_id <= 0) {
+    die("No room selected.");
+}
 
-// 3) جلب معلومات الغرفة + الفندق
+/* ===================== FETCH ROOM + HOTEL ===================== */
 $sql = "
     SELECT r.room_id, r.price, r.capacity, r.room_type, h.hotel_name
     FROM rooms r
     JOIN hotels h ON r.hotel_id = h.hotel_id
-    WHERE r.room_id = ?
+    WHERE r.room_id = $room_id
 ";
-$stmt = $conn->prepare($sql);
-$stmt->bind_param("i", $room_id);
-$stmt->execute();
-$result = $stmt->get_result();
-$room = $result->fetch_assoc();
-$stmt->close();
+$res = mysqli_query($conn, $sql);
+if (!$res || mysqli_num_rows($res) == 0) {
+    die("Room not found.");
+}
+$room = mysqli_fetch_assoc($res);
 
-
-// متغيّرات لرسالة نجاح/خطأ
+/* ===================== MESSAGES ===================== */
 $success_msg = "";
 $error_msg   = "";
 
-// 4) إذا الفورم انبعت (POST) → نعمل INSERT بجدول booking
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+/* ===================== INSERT BOOKING (POST) ===================== */
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_booking'])) {
 
-    // user_id من السيشن (عدّليه حسب نظامك)
-    $user_id = $_SESSION['user_id'] ?? 1; // مؤقتاً 1 إذا ما عندك login جاهز
+    // user_id من السيشن (عدّله حسب نظامك)
+    $user_id = isset($_SESSION['user_id']) ? (int)$_SESSION['user_id'] : 1;
 
-    $checkin        = $_POST['checkin'] ?? null;
-    $checkout       = $_POST['checkout'] ?? null;
+    $checkin        = isset($_POST['checkin']) ? $_POST['checkin'] : '';
+    $checkout       = isset($_POST['checkout']) ? $_POST['checkout'] : '';
     $guests         = isset($_POST['guests']) ? (int)$_POST['guests'] : 0;
-    $first_name     = trim($_POST['first_name'] ?? '');
-    $last_name      = trim($_POST['last_name'] ?? '');
-    $email          = trim($_POST['email'] ?? '');
-    $payment_method = $_POST['payment_method'] ?? null;
+    $first_name     = isset($_POST['first_name']) ? trim($_POST['first_name']) : '';
+    $last_name      = isset($_POST['last_name']) ? trim($_POST['last_name']) : '';
+    $email          = isset($_POST['email']) ? trim($_POST['email']) : '';
+    $payment_method = isset($_POST['payment_method']) ? $_POST['payment_method'] : '';
 
-    // تحقق بسيط
-    if (
-        empty($checkin) || empty($checkout) ||
-        empty($guests)  || empty($first_name) ||
-        empty($last_name) || empty($email) ||
-        empty($payment_method)
-    ) {
+    if ($checkin == '' || $checkout == '' || $guests <= 0 || $first_name == '' || $last_name == '' || $email == '' || $payment_method == '') {
         $error_msg = "Please fill in all required fields.";
     } else {
 
@@ -63,57 +57,47 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if ($checkin_ts === false || $checkout_ts === false || $checkout_ts <= $checkin_ts) {
             $error_msg = "Invalid dates: check-out must be after check-in.";
         } else {
-            // حساب عدد الليالي والسعر
+
+            // حساب الليالي والمبلغ
             $price_per_night = (float)$room['price'];
-            $nights = (int) round(($checkout_ts - $checkin_ts) / 86400);
+            $nights = (int)(($checkout_ts - $checkin_ts) / 86400);
             if ($nights < 1) $nights = 1;
 
             $total_amount = $price_per_night * $nights;
 
-            // قيم ابتدائية
-            $status         = 'pending';
-            $payment_status = 'pending';
-            if ($payment_method === 'credit_card') {
-                $payment_status = 'paid';
+            // statuses
+            $status         = "pending";
+            $payment_status = "pending";
+            if ($payment_method == "credit_card") {
+                $payment_status = "paid";
             }
 
-            $created_at = date('Y-m-d H:i:s');
+            $created_at = date("Y-m-d H:i:s");
 
-            $sql_insert = "INSERT INTO booking
+            // escape strings
+            $fn = mysqli_real_escape_string($conn, $first_name);
+            $ln = mysqli_real_escape_string($conn, $last_name);
+            $em = mysqli_real_escape_string($conn, $email);
+            $pm = mysqli_real_escape_string($conn, $payment_method);
+            $st = mysqli_real_escape_string($conn, $status);
+            $ps = mysqli_real_escape_string($conn, $payment_status);
+            $ci = mysqli_real_escape_string($conn, $checkin);
+            $co = mysqli_real_escape_string($conn, $checkout);
+            $ca = mysqli_real_escape_string($conn, $created_at);
+
+            $sql_insert = "
+                INSERT INTO booking
                 (user_id, room_id, check_in, check_out, created_at, status, guests_no, total_amount, payment_method, payment_status,
                  guest_first_name, guest_last_name, guest_email)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+                VALUES
+                ($user_id, $room_id, '$ci', '$co', '$ca', '$st', $guests, $total_amount, '$pm', '$ps', '$fn', '$ln', '$em')
+            ";
 
-            $stmt_ins = $conn->prepare($sql_insert);
-            if (!$stmt_ins) {
-                $error_msg = "Prepare failed: " . $conn->error;
+            $ins = mysqli_query($conn, $sql_insert);
+            if ($ins) {
+                $success_msg = "Booking saved successfully! ✅";
             } else {
-
-                // ✅ FIXED: 13 types for 13 variables (كان عندك حرف زيادة قبل)
-                $stmt_ins->bind_param(
-                    "iissssidsssss",
-                    $user_id,
-                    $room_id,
-                    $checkin,
-                    $checkout,
-                    $created_at,
-                    $status,
-                    $guests,
-                    $total_amount,
-                    $payment_method,
-                    $payment_status,
-                    $first_name,
-                    $last_name,
-                    $email
-                );
-
-                if ($stmt_ins->execute()) {
-                    $success_msg = "Booking saved successfully! ✅";
-                } else {
-                    $error_msg = "Error saving booking: " . $stmt_ins->error;
-                }
-
-                $stmt_ins->close();
+                $error_msg = "Error saving booking: " . mysqli_error($conn);
             }
         }
     }
@@ -395,12 +379,10 @@ body {
 
 <body>
 
-  <!-- NAVBAR AT THE VERY TOP -->
   <?php include 'navbar.html'; ?>
 
   <br><br><br><br>
 
-  <!-- Back link bar -->
   <div class="top-bar">
     <a href="info.php" class="back-link">
       <span class="arrow">&larr;</span>
@@ -410,26 +392,22 @@ body {
 
   <main class="booking-layout">
 
-    <!-- LEFT: BOOKING DETAILS -->
     <section class="card card-left">
       <h1 class="card-title">Booking Details</h1>
       <p class="card-subtitle">Select your dates and enter your information</p>
 
-      <?php if (!empty($success_msg)): ?>
+      <?php if ($success_msg != ""): ?>
         <div class="alert alert-success"><?php echo htmlspecialchars($success_msg); ?></div>
       <?php endif; ?>
 
-      <?php if (!empty($error_msg)): ?>
+      <?php if ($error_msg != ""): ?>
         <div class="alert alert-error"><?php echo htmlspecialchars($error_msg); ?></div>
       <?php endif; ?>
 
-      <!-- Form sends data to SAME PAGE -->
       <form class="booking-form" action="" method="post">
 
-        <!-- pass room_id -->
-        <input type="hidden" name="room_id" value="<?php echo htmlspecialchars($room['room_id']); ?>">
+        <input type="hidden" name="room_id" value="<?php echo (int)$room['room_id']; ?>">
 
-        <!-- Check-in -->
         <div class="form-group">
           <label class="label-strong">Check-in Date</label>
           <div class="input-wrapper with-icon">
@@ -438,7 +416,6 @@ body {
           </div>
         </div>
 
-        <!-- Check-out -->
         <div class="form-group">
           <label class="label-strong">Check-out Date</label>
           <div class="input-wrapper with-icon">
@@ -447,7 +424,6 @@ body {
           </div>
         </div>
 
-        <!-- Guests -->
         <div class="form-group">
           <label class="label-strong">Number of Guests</label>
           <div class="select-wrapper">
@@ -460,7 +436,6 @@ body {
           </div>
         </div>
 
-        <!-- First name -->
         <div class="form-group">
           <label class="label-strong">First Name</label>
           <div class="input-wrapper">
@@ -468,7 +443,6 @@ body {
           </div>
         </div>
 
-        <!-- Last name -->
         <div class="form-group">
           <label class="label-strong">Last Name</label>
           <div class="input-wrapper">
@@ -476,7 +450,6 @@ body {
           </div>
         </div>
 
-        <!-- Email -->
         <div class="form-group">
           <label class="label-strong">Email</label>
           <div class="input-wrapper">
@@ -484,16 +457,13 @@ body {
           </div>
         </div>
 
-        <!-- First button: show payment section -->
         <button type="button" class="btn-primary" id="show-payment-btn">
           Confirm Booking
         </button>
 
-        <!-- PAYMENT SECTION -->
         <div class="payment-section" id="payment-section">
           <p class="payment-title">Payment Method</p>
 
-          <!-- Payment Method select -->
           <div class="form-group">
             <label class="label-strong">Choose Payment Method</label>
             <div class="select-wrapper">
@@ -504,7 +474,6 @@ body {
             </div>
           </div>
 
-          <!-- Credit Card fields - فقط إذا اختار Credit Card -->
           <div id="card-fields" style="display:none;">
             <div class="form-group">
               <label class="label-strong">Card Number</label>
@@ -521,8 +490,7 @@ body {
             </div>
           </div>
 
-          <!-- Final submit -->
-          <button type="submit" class="btn-primary">
+          <button type="submit" class="btn-primary" name="submit_booking" value="1">
             Submit Booking
           </button>
         </div>
@@ -530,7 +498,6 @@ body {
       </form>
     </section>
 
-    <!-- RIGHT: ROOM SUMMARY -->
     <section class="card card-right">
       <h1 class="card-title">Room Summary</h1>
 
@@ -556,19 +523,16 @@ body {
 
         <div class="row">
           <span class="label">Price per Night:</span>
-          <span class="value">$<?php echo number_format($room['price'], 2); ?></span>
+          <span class="value">$<?php echo number_format((float)$room['price'], 2); ?></span>
         </div>
       </div>
     </section>
 
   </main>
 
-  <!-- FOOTER -->
   <?php include 'footer.html'; ?>
 
-  <!-- JS لإظهار الدفع + حقول الكريدت كارد -->
   <script>
-    // Show payment section
     const showPaymentBtn = document.getElementById('show-payment-btn');
     const paymentSection = document.getElementById('payment-section');
 
@@ -577,7 +541,6 @@ body {
       paymentSection.scrollIntoView({ behavior: 'smooth' });
     });
 
-    // Show credit card fields only if "Credit Card" selected
     const paymentSelect = document.getElementById('payment-method');
     const cardFields = document.getElementById('card-fields');
 
