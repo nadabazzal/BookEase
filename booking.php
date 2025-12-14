@@ -402,7 +402,7 @@ body {
 
   <!-- Back link bar -->
   <div class="top-bar">
-    <a href="hotelInfo.php" class="back-link">
+    <a href="info.php" class="back-link">
       <span class="arrow">&larr;</span>
       Back to rooms
     </a>

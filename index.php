@@ -64,14 +64,20 @@ while ($row = mysqli_fetch_assoc($resRec)) {
   <?php foreach ($recommended as $h): 
     $img = !empty($h['image']) ? $h['image'] : "images/default-hotel.jpg";
   ?>
-    <div class="hotel-card">
-      <img src="<?php echo htmlspecialchars($img); ?>" alt="Hotel Image">
-      <h3><?php echo htmlspecialchars($h['hotel_name']); ?></h3>
-      <p class="rating"><?php echo htmlspecialchars($h['rating']); ?></p>
-      <a href="info.php?hotel_id=<?php echo (int)$h['hotel_id']; ?>" class="btn-secondary">
-        View Details
-      </a>
-    </div>
+  <div class="hotel-card">
+  <img src="<?php echo htmlspecialchars($img); ?>" alt="Hotel Image">
+
+  <h3><?php echo htmlspecialchars($h['hotel_name']); ?></h3>
+
+  <p class="rating"><?php echo htmlspecialchars($h['rating']); ?></p>
+
+  <form method="POST" action="info.php">
+    <input type="hidden" name="hotel_id" value="<?php echo (int)$h['hotel_id']; ?>">
+    <button type="submit" class="btn-secondary">
+      View Details
+    </button>
+  </form>
+</div>
   <?php endforeach; ?>
 </div>
 

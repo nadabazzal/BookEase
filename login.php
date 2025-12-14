@@ -6,17 +6,14 @@ if (!$conn) {
     die("connection failed: " . mysqli_connect_error());
 }
 
-
 $error = "";
 if (isset($_SESSION['login_error'])) {
     $error = $_SESSION['login_error'];
     unset($_SESSION['login_error']);
 }
 
-
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
-   
     $email    = isset($_POST['email']) ? trim($_POST['email']) : '';
     $password = isset($_POST['password']) ? $_POST['password'] : '';
 
@@ -26,56 +23,59 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         exit;
     }
 
-  
     $email_safe = mysqli_real_escape_string($conn, $email);
 
     $sql    = "SELECT * FROM users WHERE email='$email_safe' LIMIT 1";
     $result = mysqli_query($conn, $sql);
 
     if ($result && mysqli_num_rows($result) === 1) {
+
         $user = mysqli_fetch_assoc($result);
 
         if (password_verify($password, $user['password'])) {
 
-            // ✅ put user data in session (NOT the password)
-            // change 'id' to your column name if needed
             $_SESSION['user_id']    = $user['user_id'];
             $_SESSION['user_email'] = $user['email'];
             $_SESSION['user_role']  = $user['role'];
 
-            // redirect based on role
+            // ===== REDIRECT BASED ON ROLE =====
             if ($user['role'] == "admin") {
                 header("Location: admin.php");
-            } if ($user['role'] == "housekeeper") {
+                exit;
+            } elseif ($user['role'] == "housekeeper") {
                 header("Location: housekeeper.php");
-            } // normal user → auto-add favorite if exists
-if (isset($_SESSION['pending_favorite_hotel'])) {
+                exit;
+            } else {
+                // ===== NORMAL USER =====
 
-    $hotel_id = (int) $_SESSION['pending_favorite_hotel'];
-    unset($_SESSION['pending_favorite_hotel']);
+                // auto-add favorite if exists
+                if (isset($_SESSION['pending_favorite_hotel'])) {
 
-    $uid = (int) $_SESSION['user_id'];
+                    $hotel_id = (int) $_SESSION['pending_favorite_hotel'];
+                    unset($_SESSION['pending_favorite_hotel']);
 
-    $check = "SELECT fav_id FROM favorites WHERE user_id=$uid AND hotel_id=$hotel_id";
-    $res = mysqli_query($conn, $check);
+                    $uid = (int) $_SESSION['user_id'];
 
-    if ($res && mysqli_num_rows($res) === 0) {
-        mysqli_query(
-            $conn,
-            "INSERT INTO favorites (user_id, hotel_id) VALUES ($uid, $hotel_id)"
-        );
-         $_SESSION['fav_success'] = "Hotel added to favorites successfully ✅";
-    }
-}
+                    $check = "SELECT fav_id FROM favorites WHERE user_id=$uid AND hotel_id=$hotel_id";
+                    $res = mysqli_query($conn, $check);
 
-// ALWAYS go to favorites
-header("Location: favorites.php");
-exit;
+                    if ($res && mysqli_num_rows($res) === 0) {
+                        mysqli_query($conn, "INSERT INTO favorites (user_id, hotel_id) VALUES ($uid, $hotel_id)");
+                        $_SESSION['fav_success'] = "Hotel added to favorites successfully ✅";
+                    }
+                }
+
+                // ✅ ALWAYS go to favorites for normal user
+                header("Location: favorites.php");
+                exit;
+            }
+
         } else {
             $_SESSION['login_error'] = "Wrong email or password.";
             header("Location: login.php");
             exit;
         }
+
     } else {
         $_SESSION['login_error'] = "Wrong email or password.";
         header("Location: login.php");
@@ -199,22 +199,10 @@ exit;
 
       <form class="login-form" action="login.php" method="post" autocomplete="off">
         <label for="email">Email address</label>
-        <input
-          type="email"
-          id="email"
-          name="email"
-          value=""
-          autocomplete="off"
-        />
+        <input type="email" id="email" name="email" value="" autocomplete="off" />
 
         <label for="password">Password</label>
-        <input
-          type="password"
-          id="password"
-          name="password"
-          value=""
-          autocomplete="off"
-        />
+        <input type="password" id="password" name="password" value="" autocomplete="off" />
 
         <button type="submit" class="login-btn">Login</button>
       </form>
@@ -225,7 +213,6 @@ exit;
     </div>
   </div>
 
-  <!-- Extra safety: clear any autofilled values on load -->
   <script>
     window.addEventListener('load', function () {
       document.getElementById('email').value = '';
