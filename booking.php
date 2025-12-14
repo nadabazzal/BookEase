@@ -36,6 +36,7 @@ $error_msg   = "";
 /* ===================== INSERT BOOKING (POST) ===================== */
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_booking'])) {
 
+<<<<<<< HEAD
     // user_id من السيشن (عدّله حسب نظامك)
     $user_id = isset($_SESSION['user_id']) ? (int)$_SESSION['user_id'] : 1;
 
@@ -46,6 +47,33 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_booking'])) {
     $last_name      = isset($_POST['last_name']) ? trim($_POST['last_name']) : '';
     $email          = isset($_POST['email']) ? trim($_POST['email']) : '';
     $payment_method = isset($_POST['payment_method']) ? $_POST['payment_method'] : '';
+=======
+    // user_id من السيشن (عدّليه حسب نظامك)
+   $user_id = isset($_SESSION['user_id']) ? $_SESSION['user_id'] : 1;
+ // مؤقتاً 1 إذا ما عندك login جاهز
+
+   $checkin  = isset($_POST['checkin']) ? $_POST['checkin'] : null;
+$checkout = isset($_POST['checkout']) ? $_POST['checkout'] : null;
+
+$guests = isset($_POST['guests']) ? (int) $_POST['guests'] : 0;
+
+$first_name = isset($_POST['first_name']) 
+    ? trim($_POST['first_name']) 
+    : '';
+
+$last_name = isset($_POST['last_name']) 
+    ? trim($_POST['last_name']) 
+    : '';
+
+$email = isset($_POST['email']) 
+    ? trim($_POST['email']) 
+    : '';
+
+$payment_method = isset($_POST['payment_method']) 
+    ? $_POST['payment_method'] 
+    : null;
+
+>>>>>>> c9b4699eb1615886ec5fd740811913e212e4cfa8
 
     if ($checkin == '' || $checkout == '' || $guests <= 0 || $first_name == '' || $last_name == '' || $email == '' || $payment_method == '') {
         $error_msg = "Please fill in all required fields.";
