@@ -2,6 +2,10 @@
 session_start();
 date_default_timezone_set("Asia/Beirut");
 
+$conn = mysqli_connect('localhost', 'root', '', 'hotel_management_system');
+if (!$conn) {
+    die("Connection failed: " . mysqli_connect_error());
+}
 
 // 1) User must be logged in (housekeeper)
 if (!isset($_SESSION['user_id'])) {
@@ -9,14 +13,30 @@ if (!isset($_SESSION['user_id'])) {
     exit();
 }
 
-$housekeeper_id = (int) $_SESSION['user_id'];
+$user_id = (int) $_SESSION['user_id'];
 
+/* ✅ 2) تأكد إنه Admin */
+$sql = "SELECT role FROM users WHERE user_id = $user_id LIMIT 1";
+$res = mysqli_query($conn, $sql);
+
+if (!$res || mysqli_num_rows($res) === 0) {
+    // user not found (غريب بس احتياط)
+    header("Location: login.php");
+    exit();
+}
+
+$row = mysqli_fetch_assoc($res);
+$role = $row['role'];
+
+/* ✅ إذا مش admin امنعه */
+if ($role !== 'housekeeper') {
+    header("Location: index.php");  // أو صفحة ثانية بدك ياها
+    exit();
+}
+$housekeeper_id = $user_id;
 
 // 2) Connect to DB (procedural)
-$conn = mysqli_connect('localhost', 'root', '', 'hotel_management_system');
-if (!$conn) {
-    die("Connection failed: " . mysqli_connect_error());
-}
+
 
 /* ====== HOUSEKEEPER NAME FOR WELCOME TEXT ====== */
 $housekeeper_name = '';
