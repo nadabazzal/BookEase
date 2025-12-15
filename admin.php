@@ -1,19 +1,42 @@
 <?php
+
 session_start();
-
-if (!isset($_SESSION['user_id'])) {
-    header('Location: login.php');
-    exit();
-}
-
-$admin_id = (int) $_SESSION['user_id'];
-
-/* ===================== DB CONNECT ===================== */
 
 $conn = mysqli_connect("localhost", "root", "", "hotel_management_system");
 if (!$conn) {
     die("connection failed: " . mysqli_connect_error());
 }
+
+/* ✅ 1) لازم يكون مسجّل دخول */
+if (!isset($_SESSION['user_id'])) {
+    header("Location: login.php");
+    exit();
+}
+
+$user_id = (int)$_SESSION['user_id'];
+
+/* ✅ 2) تأكد إنه Admin */
+$sql = "SELECT role FROM users WHERE user_id = $user_id LIMIT 1";
+$res = mysqli_query($conn, $sql);
+
+if (!$res || mysqli_num_rows($res) === 0) {
+    // user not found (غريب بس احتياط)
+    header("Location: login.php");
+    exit();
+}
+
+$row = mysqli_fetch_assoc($res);
+$role = $row['role'];
+
+/* ✅ إذا مش admin امنعه */
+if ($role !== 'admin') {
+    header("Location: index.php");  // أو صفحة ثانية بدك ياها
+    exit();
+}
+
+/* إذا وصل لهون => هو Admin */
+$admin_id = $user_id;
+
 
 /* ===================== MESSAGES ===================== */
 $statusError   = "";
