@@ -1,6 +1,13 @@
 <?php
 session_start();
 
+if (!isset($_SESSION['user_id'])) {
+    header('Location: login.php');
+    exit();
+}
+
+$admin_id = (int) $_SESSION['user_id'];
+
 /* ===================== DB CONNECT ===================== */
 
 $conn = mysqli_connect("localhost", "root", "", "hotel_management_system");
