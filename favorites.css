@@ -79,38 +79,6 @@ h2{
     width: 28px;
 }
 
-.fav-icon {
-    width: 28px;
-    cursor: pointer;
-}
-
-/* FAVORITE BUTTON (bookmark icon) */
-.favorite-btn {
-    display: inline-block;
-    justify-content: center;
-    align-items: center;
-
-    background: none;
-    border: none;
-    cursor: pointer;
-    padding: 0;
-    margin-left: 10px;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.favorite-btn i {
-    font-size: 22px;
-    color: #999;          /* default gray */
-    transition: 0.3s ease;
-}
-
-/* Hover effect */
-.favorite-btn:hover i {
-    background-color: #295066;
-    color: #ffffff;     /* yellow on hover */
-}
 
 
 
