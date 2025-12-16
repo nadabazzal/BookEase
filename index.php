@@ -39,7 +39,7 @@ while ($row = mysqli_fetch_assoc($resRec)) {
         <?php include 'navbar.html'; ?>
 
 
-<!-- ========= HEADER SECTION (BANNER) ========= -->
+<!--HEADER SECTION (BANNER)  -->
 <section class="hero-section">
         <img src="images/hotel5.jpg" class="hero-img">
 
@@ -52,7 +52,7 @@ while ($row = mysqli_fetch_assoc($resRec)) {
 
 
 
-<!-- ========= RECOMMENDED HOTELS ========= -->
+<!--RECOMMENDED HOTELS  -->
 <section class="recommended">
     <h2 class="section-title">RECOMMENDED HOTELS</h2>
     <p class="section-subtitle">
@@ -89,7 +89,7 @@ while ($row = mysqli_fetch_assoc($resRec)) {
 
 
 
-<!-- ========= HOW IT WORKS ========= -->
+<!--HOW IT WORKS  -->
 <section class="how-section">
   <div class="how-container">
 
@@ -97,7 +97,7 @@ while ($row = mysqli_fetch_assoc($resRec)) {
     <div class="how-underline"></div>
 
     <div class="how-grid">
-      <!-- عمود يسار -->
+     
       <div class="how-column">
         <div class="how-card">
           <div class="how-card-header">
@@ -118,14 +118,14 @@ while ($row = mysqli_fetch_assoc($resRec)) {
         </div>
       </div>
 
-      <!-- الصورة بالنص -->
+    
       <div class="how-center">
         <div class="how-image-wrap">
           <img src="images/hotel1.jpg" alt="Hotel" class="how-image">
         </div>
       </div>
 
-      <!-- عمود يمين -->
+     
       <div class="how-column">
         <div class="how-card">
           <div class="how-card-header"><i class="fas fa-users"></i>
@@ -150,21 +150,8 @@ while ($row = mysqli_fetch_assoc($resRec)) {
   </div>
 </section>
 
-<!-- ========= end ========= -->
 
-
-
-
-
-
-
-
-
-
-
-
-
-<!-- ========= BOTTOM IMAGE SECTION ========= -->
+<!-- BOTTOM IMAGE SECTION -->
 <section >
     <img src="images/BOTTOM-IMAGE-LINK.jpg" alt="Hotel Interior" class="bottom-image">
 </section>
