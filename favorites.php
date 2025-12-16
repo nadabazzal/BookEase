@@ -87,32 +87,56 @@ $favorites = mysqli_query($conn, $sql);
     <link rel="stylesheet" href="favorites.css">
 
     <style>
-        
-  .favorite-btn {
-    background: none;
-    border: none;
-    cursor: pointer;
-    padding: 0;
-    margin-left: 100px; 
+  /* FAVORITE BUTTON (bookmark / heart icon) */
+.favorite-btn {
     display: inline-flex;
     align-items: center;
     justify-content: center;
+    width: 36px;
+    height: 36px;
+    background-color: transparent;
+    border: none;
+    border-radius: 50%;
+
+    cursor: pointer;
+    padding: 0;
+    margin-left: 10px;
+
+    transition: background-color 0.25s ease;
 }
 
+/* Icon inside button */
 .favorite-btn i {
     font-size: 22px;
-    color: #ffffff;
-    transition: 0.3s ease;
+    color: #999;                 /* default gray */
+    transition: color 0.25s ease, transform 0.2s ease;
+}
+
+/* Hover effect */
+.favorite-btn:hover {
+    background-color: #295066;
 }
 
 .favorite-btn:hover i {
-    background-color: #295066; 
-    color: #999;
+    color: #ffffff;
+    transform: scale(1.15);
 }
+
+/* Active (click feedback) */
+.favorite-btn:active i {
+    transform: scale(0.95);
+}
+
+/* Optional: when item is favorited */
+.favorite-btn.active i {
+    color: #e74c3c;   /* red for favorited */
+}
+
 h2{
     font-family: 'Playfair Display', serif;
     color: white;
 }
+
 
     </style>
 </head>
@@ -142,11 +166,15 @@ if ($favorites && mysqli_num_rows($favorites) > 0):
                 <p class="price">From $<?php echo htmlspecialchars($row['base_price']); ?>/night</p>
             <?php endif; ?>
 
+         
             <!-- Go to hotel details -->
-            <button class="more-btn"
-                onclick="window.location.href='hotelInfo.php?hotel_id=<?php echo $row['hotel_id']; ?>';">
-                Show more info
-            </button>
+            <form action="info.php" method="POST" style="display:inline-block; margin-left:10px;">
+    <input type="hidden" name="hotel_id" value="<?php echo $row['hotel_id']; ?>">
+    <button type="submit" class="more-btn">
+        Show more info
+    </button>
+</form>
+           
 
             <!-- Remove from favorites -->
            <form method="POST" style="display:inline-block; margin-left:10px;">
