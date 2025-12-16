@@ -93,11 +93,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             mysqli_query($conn, "INSERT INTO favorites (user_id, hotel_id) VALUES ($uid, $hotel_id)");
             $_SESSION['fav_success'] = "Hotel added to favorites successfully ✅";
         }
+         header("Location: favorites.php");
     }
-
-    // ✅ always go to favorites page after signup
-    header("Location: favorites.php");
-    exit;
+else{
+   
+    header("Location: index.php");
+    exit;}
 
 } else {
     $errors[] = "Error while saving your account.Please try again ";
