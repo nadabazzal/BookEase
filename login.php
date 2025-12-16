@@ -38,7 +38,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $_SESSION['user_email'] = $user['email'];
             $_SESSION['user_role']  = $user['role'];
 
-            // ===== REDIRECT BASED ON ROLE =====
+            // REDIRECT BASED ON ROLE
             if ($user['role'] == "admin") {
                 header("Location: admin.php");
                 exit;
@@ -46,7 +46,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 header("Location: housekeeper.php");
                 exit;
             } else {
-                // ===== NORMAL USER =====
+                //  NORMAL USER 
 
                 // auto-add favorite if exists
                 if (isset($_SESSION['pending_favorite_hotel'])) {
@@ -65,7 +65,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     }
                 }
 
-                // ✅ ALWAYS go to favorites for normal user
+                //  ALWAYS go to favorites for normal user
                 header("Location: favorites.php");
                 exit;
             }
@@ -94,9 +94,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600&family=Open+Sans:wght@400;600&display=swap" rel="stylesheet">
 
   <style>
-    *,
-    *::before,
-    *::after {
+    * {
       box-sizing: border-box;
       margin: 0;
       padding: 0;
