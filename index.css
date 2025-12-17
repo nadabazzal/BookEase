@@ -11,7 +11,7 @@ h1, h2, h3, h4 {
 }
 
 
-/* ================= HERO SECTION ================= */
+
 .hero-section {
     position: relative;
     width: 100%;
@@ -55,7 +55,7 @@ h1, h2, h3, h4 {
 
 
 
-/* ================= RECOMMENDED HOTELS ================= */
+
 .recommended {
     text-align: center;
     padding: 60px 20px;
