@@ -24,14 +24,9 @@ while ($row = mysqli_fetch_assoc($resRec)) {
 <html lang="en">
 <head>
    
-     <!-- Google Fonts -->
+     
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600&family=Playfair+Display:wght@400;500;600&display=swap" rel="stylesheet">
 
-
-
-
-
-    <!-- External CSS -->
     <link rel="stylesheet" href="index.css">
     
 </head>
@@ -39,7 +34,7 @@ while ($row = mysqli_fetch_assoc($resRec)) {
         <?php include 'navbar.html'; ?>
 
 
-<!--HEADER SECTION (BANNER)  -->
+
 <section class="hero-section">
         <img src="images/hotel5.jpg" class="hero-img">
 
@@ -52,7 +47,7 @@ while ($row = mysqli_fetch_assoc($resRec)) {
 
 
 
-<!--RECOMMENDED HOTELS  -->
+
 <section class="recommended">
     <h2 class="section-title">RECOMMENDED HOTELS</h2>
     <p class="section-subtitle">
