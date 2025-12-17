@@ -7,7 +7,7 @@ if (!$conn) {
     die("Connection failed: " . mysqli_connect_error());
 }
 
-// 1) User must be logged in (housekeeper)
+
 if (!isset($_SESSION['user_id'])) {
     header('Location: login.php');
     exit();
@@ -15,12 +15,12 @@ if (!isset($_SESSION['user_id'])) {
 
 $user_id = (int) $_SESSION['user_id'];
 
-/* ✅ 2) تأكد إنه Admin */
+
 $sql = "SELECT role FROM users WHERE user_id = $user_id LIMIT 1";
 $res = mysqli_query($conn, $sql);
 
 if (!$res || mysqli_num_rows($res) === 0) {
-    // user not found (غريب بس احتياط)
+  
     header("Location: login.php");
     exit();
 }
@@ -28,17 +28,14 @@ if (!$res || mysqli_num_rows($res) === 0) {
 $row = mysqli_fetch_assoc($res);
 $role = $row['role'];
 
-/* ✅ إذا مش admin امنعه */
+
 if ($role !== 'housekeeper') {
-    header("Location: index.php");  // أو صفحة ثانية بدك ياها
+    header("Location: index.php");  
     exit();
 }
 $housekeeper_id = $user_id;
 
-// 2) Connect to DB (procedural)
 
-
-/* ====== HOUSEKEEPER NAME FOR WELCOME TEXT ====== */
 $housekeeper_name = '';
 $name_sql = "SELECT first_name FROM users WHERE user_id = $housekeeper_id";
 $name_res = mysqli_query($conn, $name_sql);
@@ -47,7 +44,7 @@ if ($name_res && mysqli_num_rows($name_res) === 1) {
     $housekeeper_name = $user_row['first_name'];
 }
 
-/* ====== STATUS FILTER (TABS) ====== */
+
 $allowed_status = ['all', 'pending', 'in_progress', 'done'];
 $status_filter = "all";
 
@@ -59,21 +56,17 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['status'])) {
 
 
 
-/* ============================
-   HANDLE STATUS UPDATE (POST)
-   ============================ */
-//التعامل مع الفورم (عند الضغط على غرفة أو زر تغيير حالة)
+
 $selected = null;
 $selected_hs_id = null;
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['hs_id'])) {
     $selected_hs_id = (int) $_POST['hs_id'];
 
-    // إذا ضغطنا على Start / Done نحدّث الحالة
+    
     if (isset($_POST['update_status'])) {
         $new_status = $_POST['update_status'];
 
-        // whitelist للحالات المسموحة فقط
         if ($new_status === 'in_progress' || $new_status === 'done') {
             $upd_sql = "
                 UPDATE housekeeping_requests
@@ -86,7 +79,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['hs_id'])) {
         }
     }
 
-    // بعد التحديث (أو بدون تحديث) نجيب تفاصيل هذا الطلب
+    
     $detail_sql = "
         SELECT 
             hr.*,
@@ -108,9 +101,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['hs_id'])) {
     }
 }
 
-/* ============================
-   LEFT LIST: ALL REQUESTS (BY ROOM)
-   ============================ */
 
 $status_sql = ($status_filter === 'all')? "" : " AND hr.status = '$status_filter'";
 
@@ -141,7 +131,7 @@ $list_res = mysqli_query($conn, $list_sql);
   <title>BookEase – Housekeeper Dashboard</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <!-- Fonts -->
+  
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600&family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
 
   <style>
@@ -162,14 +152,14 @@ $list_res = mysqli_query($conn, $list_sql);
       text-decoration: none;
     }
 
-    /* MAIN WRAPPER */
+   
     .page-wrapper {
       max-width: 1100px;
       margin: 40px auto 60px;
       padding: 0 20px;
     }
 
-    /* WELCOME SECTION */
+    
     .welcome-block {
       margin-bottom: 20px;
     }
@@ -186,7 +176,7 @@ $list_res = mysqli_query($conn, $list_sql);
       line-height: 1.7;
     }
 
-    /* CARD BASE DESIGN */
+   
     .card {
       background: #0e3144;
       border-radius: 22px;
@@ -195,7 +185,7 @@ $list_res = mysqli_query($conn, $list_sql);
       margin-bottom: 30px;
     }
 
-    /* TASKS CARD */
+   
     .tasks-header {
       display: flex;
       justify-content: space-between;
@@ -223,7 +213,7 @@ $list_res = mysqli_query($conn, $list_sql);
     }
     .tasks-tabs {
   display: flex;
-  gap: 12px; /* space between buttons */
+  gap: 12px; 
 }
 
 
@@ -245,7 +235,7 @@ $list_res = mysqli_query($conn, $list_sql);
 
   
 
-    /* LIST OF ROOMS / REQUESTS */
+    
     .guest-list {
       display: flex;
       flex-direction: column;
@@ -318,7 +308,7 @@ $list_res = mysqli_query($conn, $list_sql);
       color: #e0edf5;
     }
 
-    /* ACTION BUTTONS */
+    
     .actions-row {
       margin-top: 28px;
       display: flex;
@@ -356,7 +346,7 @@ $list_res = mysqli_query($conn, $list_sql);
 
 <main class="page-wrapper">
 
-  <!-- WELCOME -->
+ 
   <section class="welcome-block">
     <h1 class="welcome-title">Welcome, <?php echo htmlspecialchars($housekeeper_name); 
     ?></h1>
@@ -369,7 +359,7 @@ $list_res = mysqli_query($conn, $list_sql);
     </p>
   </section>
 
-  <!-- TASKS CARD (LEFT: LIST OF REQUESTS) -->
+ 
   <section class="card">
     <div class="tasks-header">
       <div class="chip">📍 Beirut • Housekeeping</div>
@@ -404,7 +394,7 @@ $list_res = mysqli_query($conn, $list_sql);
         <form method="POST">
           <div class="guest-item">
             <div class="guest-icon">🛏</div>
-            <!-- Hidden hs_id sent via POST -->
+           
             <input type="hidden" name="hs_id" value="<?php echo (int)$row['hs_id']; ?>">
             <button type="submit">
               Room <?php echo htmlspecialchars($row['room_nb']); ?>
@@ -422,7 +412,7 @@ $list_res = mysqli_query($conn, $list_sql);
     </div>
   </section>
 
-  <!-- DETAILS CARD (ONLY IF A REQUEST IS SELECTED) -->
+  
   <?php if ($selected): ?>
   <section class="card" id="details-card">
 
@@ -451,7 +441,7 @@ $list_res = mysqli_query($conn, $list_sql);
     </p>
 
     <div class="actions-row">
-      <!-- Start cleaning = in_progress -->
+     
       <form method="POST">
         <input type="hidden" name="hs_id" value="<?php echo (int)$selected['hs_id']; ?>">
         <button class="btn-pill" type="submit" name="update_status" value="in_progress">
@@ -459,7 +449,7 @@ $list_res = mysqli_query($conn, $list_sql);
         </button>
       </form>
 
-      <!-- Mark as cleaned = done -->
+      
       <form method="POST">
         <input type="hidden" name="hs_id" value="<?php echo (int)$selected['hs_id']; ?>">
         <button class="btn-pill" type="submit" name="update_status" value="done">
