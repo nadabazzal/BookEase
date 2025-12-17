@@ -28,10 +28,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $errors[] = "Please enter a valid email address.";
     }
 
-    /* --- Password validation (simple rules) --- */
-    // - At least 8 characters
-    // - At least one letter
-    // - At least one number
+   
     if ($password === "") {
         $errors[] = "Password is required.";
     } else {
@@ -72,13 +69,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                        VALUES ('$email_safe', '$password_hashed', 'user')";
 
         if (mysqli_query($conn, $sql_insert)) {
-            // ✅ log the user in immediately
+            
     $new_user_id = mysqli_insert_id($conn);
     $_SESSION['user_id'] = (int)$new_user_id;
     $_SESSION['user_email'] = $email_safe;
     $_SESSION['user_role'] = 'user';
 
-    // ✅ auto-add pending favorite after signup
+    
     if (isset($_SESSION['pending_favorite_hotel'])) {
 
         $hotel_id = (int) $_SESSION['pending_favorite_hotel'];
