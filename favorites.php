@@ -1,7 +1,7 @@
 <?php
 session_start();
 
-// If user not logged in, remember the hotel & go to login
+
 if (!isset($_SESSION['user_id'])) {
 
     if (isset($_POST['hotel_id'])) {
@@ -16,15 +16,13 @@ if (!isset($_SESSION['user_id'])) {
 
 $user_id = (int) $_SESSION['user_id'];
 
-// Connect to DB (procedural)
+
 $conn = mysqli_connect('localhost', 'root', '', 'hotel_management_system');
 if (!$conn) {
     die("Connection failed: " . mysqli_connect_error());
 }
 
-/* ==========================
-   1) ADD TO FAVORITES
-   ========================== */
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['hotel_id'])) {
 
     $hotel_id = (int) $_POST['hotel_id'];
@@ -45,9 +43,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['hotel_id'])) {
 }
 
 
-/* ==========================
-   2) REMOVE FROM FAVORITES
-   ========================== */
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['remove_hotel_id'])) {
 
     $remove_hotel_id = (int) $_POST['remove_hotel_id'];
@@ -65,7 +61,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['remove_hotel_id'])) {
 }
 
 
-// Get favorites with hotel info (including image)
+
 $sql = "
     SELECT h.hotel_id,
            h.hotel_name,
@@ -87,7 +83,7 @@ $favorites = mysqli_query($conn, $sql);
     <link rel="stylesheet" href="favorites.css">
 
     <style>
-  /* FAVORITE BUTTON (bookmark / heart icon) */
+ 
 .favorite-btn {
     display: inline-flex;
     align-items: center;
@@ -105,14 +101,14 @@ $favorites = mysqli_query($conn, $sql);
     transition: background-color 0.25s ease;
 }
 
-/* Icon inside button */
+
 .favorite-btn i {
     font-size: 22px;
-    color: #999;                 /* default gray */
+    color: #999;                
     transition: color 0.25s ease, transform 0.2s ease;
 }
 
-/* Hover effect */
+
 .favorite-btn:hover {
     background-color: #295066;
 }
@@ -122,14 +118,14 @@ $favorites = mysqli_query($conn, $sql);
     transform: scale(1.15);
 }
 
-/* Active (click feedback) */
+
 .favorite-btn:active i {
     transform: scale(0.95);
 }
 
-/* Optional: when item is favorited */
+
 .favorite-btn.active i {
-    color: #e74c3c;   /* red for favorited */
+    color: #e74c3c;  
 }
 
 h2{
@@ -167,7 +163,7 @@ if ($favorites && mysqli_num_rows($favorites) > 0):
             <?php endif; ?>
 
          
-            <!-- Go to hotel details -->
+
             <form action="info.php" method="POST" style="display:inline-block; margin-left:10px;">
     <input type="hidden" name="hotel_id" value="<?php echo $row['hotel_id']; ?>">
     <button type="submit" class="more-btn">
@@ -176,7 +172,6 @@ if ($favorites && mysqli_num_rows($favorites) > 0):
 </form>
            
 
-            <!-- Remove from favorites -->
            <form method="POST" style="display:inline-block; margin-left:10px;">
     <input type="hidden" name="remove_hotel_id" value="<?php echo (int)$row['hotel_id']; ?>">
     <button class="favorite-btn" type="submit">
