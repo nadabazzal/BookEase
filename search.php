@@ -1,15 +1,13 @@
 <?php
 session_start();
 
-// 1) CONNECT TO DATABASE
+
 $conn = mysqli_connect('localhost', 'root', '', 'hotel_management_system');
 if (!$conn) {
     die("Connection failed: " . mysqli_connect_error());
 }
 
-/* ==========================
-   GET DISTINCT CITIES
-========================== */
+
 $cities = array();
 $sqlCities = "SELECT DISTINCT city FROM hotels WHERE status = 'approved' ORDER BY city ASC";
 $resultCities = mysqli_query($conn, $sqlCities);
@@ -20,9 +18,7 @@ if ($resultCities && mysqli_num_rows($resultCities) > 0) {
     }
 }
 
-/* ==========================
-   HOTEL FEATURES
-========================== */
+//hotel features
 $hotelFeatures = array();
 $sqlHF = "SELECT feature_id, feature_name FROM hotelsfeatures ORDER BY feature_name ASC";
 $resultHF = mysqli_query($conn, $sqlHF);
@@ -32,9 +28,9 @@ if ($resultHF) {
     }
 }
 
-/* ==========================
-   ROOM FEATURES
-========================== */
+
+//   ROOM FEATURES
+
 $roomFeatures = array();
 $sqlRF = "SELECT featurer_id, featurer_name FROM roomsfeatures ORDER BY featurer_name ASC";
 $resultRF = mysqli_query($conn, $sqlRF);
@@ -44,18 +40,18 @@ if ($resultRF) {
     }
 }
 
-/* ==========================
-   FILTER VARIABLES
-========================== */
+
+//   FILTER VARIABLES
+
 $hotels            = array();
 $selected_city     = isset($_POST['city']) ? $_POST['city'] : '';
 $selectedHotelFeat = isset($_POST['hotel_features']) ? $_POST['hotel_features'] : array();
 $selectedRoomFeat  = isset($_POST['room_features']) ? $_POST['room_features'] : array();
 $sort              = isset($_POST['sort']) ? $_POST['sort'] : 'recommended';
 
-/* ==========================
-   BUILD MAIN QUERY
-========================== */
+
+//   BUILD MAIN QUERY
+
 if ($selected_city !== '') {
     $city_safe = mysqli_real_escape_string($conn, $selected_city);
 
