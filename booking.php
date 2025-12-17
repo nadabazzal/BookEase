@@ -1,13 +1,11 @@
 <?php
 session_start();
 
-/* ===================== DB CONNECT ===================== */
 $conn = mysqli_connect("localhost", "root", "", "hotel_management_system");
 if (!$conn) {
     die("connection failed: " . mysqli_connect_error());
 }
 
-/* ===================== GET room_id (POST ONLY) ===================== */
 $room_id = 0;
 if (isset($_POST['room_id'])) {
     $room_id = (int)$_POST['room_id'];
@@ -16,7 +14,7 @@ if ($room_id <= 0) {
     die("No room selected.");
 }
 
-/* ===================== FETCH ROOM + HOTEL ===================== */
+
 $sql = "
     SELECT r.room_id, r.price, r.capacity, r.room_type,
            h.hotel_name, h.hotel_id
@@ -31,17 +29,17 @@ if (!$res || mysqli_num_rows($res) == 0) {
 }
 $room = mysqli_fetch_assoc($res);
 
-$hotel_id = (int)$room['hotel_id'];   // ✅ IMPORTANT
+$hotel_id = (int)$room['hotel_id'];   
 
 
-/* ===================== MESSAGES ===================== */
+
 $success_msg = "";
 $error_msg   = "";
 
-/* ===================== INSERT BOOKING (POST) ===================== */
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_booking'])) {
 
-    // user_id من السيشن (عدّله حسب نظامك)
+    
     $user_id = isset($_SESSION['user_id']) ? (int)$_SESSION['user_id'] : 1;
 
     $checkin        = isset($_POST['checkin']) ? $_POST['checkin'] : '';
