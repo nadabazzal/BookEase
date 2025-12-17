@@ -18,16 +18,21 @@ if ($room_id <= 0) {
 
 /* ===================== FETCH ROOM + HOTEL ===================== */
 $sql = "
-    SELECT r.room_id, r.price, r.capacity, r.room_type, h.hotel_name
+    SELECT r.room_id, r.price, r.capacity, r.room_type,
+           h.hotel_name, h.hotel_id
     FROM rooms r
     JOIN hotels h ON r.hotel_id = h.hotel_id
     WHERE r.room_id = $room_id
 ";
+
 $res = mysqli_query($conn, $sql);
 if (!$res || mysqli_num_rows($res) == 0) {
     die("Room not found.");
 }
 $room = mysqli_fetch_assoc($res);
+
+$hotel_id = (int)$room['hotel_id'];   // ✅ IMPORTANT
+
 
 /* ===================== MESSAGES ===================== */
 $success_msg = "";
@@ -383,12 +388,14 @@ body {
 
   <br><br><br><br>
 
-  <div class="top-bar">
-    <a href="info.php" class="back-link">
-      <span class="arrow">&larr;</span>
-      Back to rooms
-    </a>
-  </div>
+ <form action="info.php" method="post" style="display:inline;">
+  <input type="hidden" name="hotel_id" value="<?php echo (int)$hotel_id; ?>">
+  <button type="submit" class="back-link" style="background:none;border:none;cursor:pointer;">
+    <span class="arrow">&larr;</span>
+    Back to rooms
+  </button>
+</form>
+
 
   <main class="booking-layout">
 
