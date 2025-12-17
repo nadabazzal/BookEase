@@ -6,9 +6,9 @@ if (!$conn) {
     die("Connection failed: " . mysqli_connect_error());
 }
 
-/* ------------------------------------------------------
-   1) READ hotel_id FROM POST ONLY (NO GET)
------------------------------------------------------- */
+
+//   1) READ hotel_id FROM POST ONLY (NO GET)
+
 if (!isset($_POST['hotel_id'])) {
     die("Access denied.");
 }
@@ -19,9 +19,9 @@ if ($hotel_id <= 0) {
     die("Invalid hotel.");
 }
 
-/* ------------------------------------------------------
-   2) GET HOTEL INFO
------------------------------------------------------- */
+
+//   2) GET HOTEL INFO
+
 $sqlHotel = "
     SELECT hotel_id, hotel_name, description, rating,
            country, city, base_price,image
@@ -37,9 +37,9 @@ if (!$resultHotel || mysqli_num_rows($resultHotel) == 0) {
 
 $hotel = mysqli_fetch_assoc($resultHotel);
 
-/* ------------------------------------------------------
-   3) GET ROOM FEATURES PER ROOM
------------------------------------------------------- */
+
+//   3) GET ROOM FEATURES PER ROOM
+
 $roomFeatures = array();  // room_id => features array
 $sqlRoomFeat = "
     SELECT rfm.room_id, rf.featurer_name
@@ -60,9 +60,9 @@ if ($resultRoomFeat) {
     }
 }
 
-/* ------------------------------------------------------
-   4) GET ROOMS + ONE IMAGE PER ROOM
------------------------------------------------------- */
+
+//   4) GET ROOMS + ONE IMAGE PER ROOM
+
 $sqlRooms = "
     SELECT 
         r.room_id,
@@ -157,7 +157,7 @@ if ($resultFeat) {
 .hotel-image {
     width: 100%;
     height: 100%;
-    object-fit: cover;      /* 🔥 THIS DOES THE CROPPING */
+    object-fit: cover;     
     object-position: center;
     display: block;
 }
@@ -303,7 +303,7 @@ if ($resultFeat) {
     margin-left: 10px;
 }
 .room-bottom form {
-  margin-left: auto;             /* ⬅️ يدفع الزر لليمين */
+  margin-left: auto;           
 }
 
 .btn-secondary:hover {
@@ -317,7 +317,7 @@ if ($resultFeat) {
 }
 
 
-    /* ---------- ROOMS & PRICES ---------- */
+    
     .rooms-row {
       background: var(--bg-card);
       border-radius: 18px;
